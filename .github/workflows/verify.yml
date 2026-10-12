@@ -18,5 +18,9 @@ jobs:
         run: |
           python3 scripts/build.py
           xcrun swiftc -swift-version 5 -warnings-as-errors -framework AppKit -framework CryptoKit src/launcher/*.swift -o build/launcher-check
+          xcrun swift scripts/assets.swift build/distribution-assets
+          xcrun iconutil --convert icns build/distribution-assets/AppIcon.iconset --output build/distribution-assets/AppIcon.icns
       - name: Test
-        run: lua tests/extensions.lua
+        run: |
+          python3 -m unittest discover -s tests -p 'test_*.py'
+          lua tests/extensions.lua

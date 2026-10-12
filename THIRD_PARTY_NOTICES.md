@@ -30,3 +30,10 @@ THE SOFTWARE.
 
 Game textures, widgets, symbols and saves remain in the user's licensed game
 installation. They are accessed at runtime and are not redistributed.
+
+## Packaging tools
+
+The build uses dmgbuild (MIT), ds-store (MIT) and mac-alias (MIT),
+maintained at https://github.com/dmgbuild. They run only on the build machine
+and are not included in the application or disk image. Versions and archive
+hashes are pinned in scripts/requirements-packaging.txt.

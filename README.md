@@ -7,9 +7,15 @@ external mod manager, Python service or package manager to run while playing.
 ## Install
 
 1. Install the supported Mac App Store edition of Palworld.
-2. Download and extract the private release archive.
-3. Close Palworld once, then double-click **Install.command**.
-4. Open **Palworld** from the Desktop shortcut. Open **Options → Mods**.
+2. Open the **Palworld Mods.dmg** disk image from the private release.
+3. Drag **Palworld Mods** into **Applications**, then eject the disk image.
+4. Close Palworld once, then open **Palworld Mods** from Applications.
+5. In the game, open **Options → Mods**.
+
+The installer includes Minimap and requires no Terminal commands or additional
+downloads. **Palworld Mods.app** is a separate app; it does not replace the
+licensed **Palworld.app**. Settings carry over from previous launcher versions.
+To update, close the game, drag the new app into Applications and choose Replace.
 
 **Manage mods** installs or removes bundled mods immediately. An absent mod is
 gray; select it to install. Select an installed mod on the Mods page to change
@@ -20,8 +26,10 @@ Runtime upgrades require one game restart. Installing, removing, enabling and
 configuring bundled mods does not. The original game app and saves are unchanged.
 Launching the original App Store app directly starts the unmodified game.
 
-The current app is locally signed, not notarized. Downloaded builds may require
-macOS approval. Developer ID signing is required for a notarized distribution.
+Local builds are ad hoc signed, not notarized. Downloaded builds may require
+approval in **System Settings → Privacy & Security → Open Anyway**, after a launch
+attempt. Only approve a build you trust. Developer ID signing and notarization
+are supported by the release builder; see [distribution](docs/distribution.md).
 
 ## Compatibility
 
@@ -49,13 +57,19 @@ Then run:
 
 ```sh
 python3 scripts/verify.py
+python3 -m unittest discover -s tests -p 'test_*.py'
 lua tests/extensions.lua
-python3 scripts/package_app.py
+python3 -m venv .venv
+.venv/bin/python -m pip install --require-hashes -r scripts/requirements-packaging.txt
+.venv/bin/python scripts/package_dmg.py
+.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.2.0-macos-arm64.dmg
 ```
 
-The build downloads checksum-pinned Lua sources. `dist/Palworld.app` contains the
-runtime, native Swift launcher, notices and offline mod catalogue. Game assets
-are resolved from the licensed game and are never packaged.
+The build downloads checksum-pinned Lua sources. `dist/Palworld Mods.app` contains
+the runtime, native Swift launcher, original icon, notices and offline mod
+catalogue. The `.dmg` contains the app and a shortcut to Applications. Packaging
+tools run only during the build; no Python or packaging dependency ships with
+the app. Game assets are resolved from the licensed game and are never packaged.
 
 `src/native` provides checked Unreal reflection, weak handles, native input and
 bounded transport. `src/runtime` owns the menu, lifecycle and shared game API.
@@ -79,9 +93,11 @@ investigate failures; they do not prove a native crash has been fixed.
 
 ## Remove
 
-Close the game, remove the installed launcher and its Desktop shortcut, then
-launch the original app from Applications. Settings can be kept for later use.
-Deleting the mod runtime does not delete game saves.
+Close the game and move **Palworld Mods** from Applications to the Trash. Launch
+the original **Palworld** app to play without mods. Settings can be kept for later
+use. Deleting the mod runtime does not delete game saves. An older launcher named
+Palworld in the user Applications folder and its Desktop shortcut can also be
+removed after verifying the new app; keep the original Mac App Store game.
 
 See [architecture](docs/architecture.md), [validation](docs/validation.md),
 [security](SECURITY.md) and [third-party notices](THIRD_PARTY_NOTICES.md).

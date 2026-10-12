@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Assemble a self-contained macOS app with an offline mod catalogue."""
 import hashlib
+import argparse
 import json
 import pathlib
 import plistlib
 import shutil
 import subprocess
+import tempfile
 from build import ROOT, build
+from distribution import APP_NAME, APP_FILENAME, BUNDLE_ID, VERSION, sign, signing_options
 
 
 def package_mod(folder, output):
@@ -21,33 +24,58 @@ def package_mod(folder, output):
     destination.with_suffix('.sha256').write_text(hashlib.sha256(data).hexdigest() + '\n')
 
 
-def main():
+def package_app(identity='-'):
+    signing_options(identity)
+    for name in ['palworld-mod-minimap', 'palworld-mod-autonomy']:
+        if not (ROOT.parent / name / 'manifest.json').is_file():
+            raise RuntimeError(f'Place {name} beside this repository before packaging.')
     build()
-    app = ROOT / 'dist/Palworld.app'
+    assets = ROOT / 'build/distribution-assets'
+    subprocess.run(['xcrun', 'swift', str(ROOT / 'scripts/assets.swift'), str(assets)], check=True)
+    subprocess.run(['xcrun', 'iconutil', '--convert', 'icns', str(assets / 'AppIcon.iconset'),
+                    '--output', str(assets / 'AppIcon.icns')], check=True)
+    (ROOT / 'dist').mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='app-package-', dir=ROOT / 'build') as staging:
+        app = pathlib.Path(staging) / APP_FILENAME
+        assemble(app, assets, identity)
+        destination = ROOT / 'dist' / APP_FILENAME
+        if destination.exists():
+            shutil.rmtree(destination)
+        shutil.move(app, destination)
+    print(f'Built dist/{APP_FILENAME}')
+    return destination
+
+
+def assemble(app, assets, identity):
     contents = app / 'Contents'
     executable = contents / 'MacOS'
     resources = contents / 'Resources'
     for folder in [executable, resources / 'Catalog']:
         folder.mkdir(parents=True, exist_ok=True)
     subprocess.run(['xcrun', 'swiftc', '-swift-version', '5', '-O', '-warnings-as-errors',
+                    '-file-prefix-map', f'{ROOT}=.', '-debug-prefix-map', f'{ROOT}=.',
                     '-target', 'arm64-apple-macos14.0', '-framework', 'AppKit', '-framework', 'CryptoKit',
                     *map(str, sorted((ROOT / 'src/launcher').glob('*.swift'))),
                     '-o', str(executable / 'PalworldMods')], check=True)
     shutil.copy2(ROOT / 'build/libPalMods.dylib', resources)
     shutil.copy2(ROOT / 'THIRD_PARTY_NOTICES.md', resources)
     shutil.copy2(ROOT / 'LICENSE', resources)
+    shutil.copy2(assets / 'AppIcon.icns', resources)
     for name in ['palworld-mod-minimap', 'palworld-mod-autonomy']:
         package_mod(ROOT.parent / name, resources / 'Catalog')
-    metadata = {'CFBundleIdentifier': 'org.palworldmods.launcher', 'CFBundleName': 'Palworld',
-                'CFBundleDisplayName': 'Palworld', 'CFBundleExecutable': 'PalworldMods',
-                'CFBundlePackageType': 'APPL', 'CFBundleShortVersionString': '0.1.0',
-                'CFBundleVersion': '1', 'LSMinimumSystemVersion': '14.0', 'LSUIElement': True}
+    metadata = {'CFBundleIdentifier': BUNDLE_ID, 'CFBundleName': APP_NAME,
+                'CFBundleDisplayName': APP_NAME, 'CFBundleExecutable': 'PalworldMods',
+                'CFBundlePackageType': 'APPL', 'CFBundleShortVersionString': VERSION,
+                'CFBundleVersion': VERSION, 'CFBundleIconFile': 'AppIcon.icns',
+                'LSMinimumSystemVersion': '14.0', 'LSUIElement': True,
+                'LSArchitecturePriority': ['arm64'], 'NSHighResolutionCapable': True}
     (contents / 'Info.plist').write_bytes(plistlib.dumps(metadata))
-    subprocess.run(['codesign', '--force', '--deep', '--sign', '-', str(app)], check=True)
+    sign(resources / 'libPalMods.dylib', identity)
+    sign(app, identity)
     subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
-    shutil.copy2(ROOT / 'scripts/Install.command', ROOT / 'dist/Install.command')
-    print('Built dist/Palworld.app')
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--sign-identity', default='-')
+    package_app(parser.parse_args().sign_identity)

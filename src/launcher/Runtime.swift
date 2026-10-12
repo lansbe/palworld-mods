@@ -46,7 +46,8 @@ final class Runtime {
             self.onExit?(process.terminationStatus)
         }
         try process.run()
-        note("launch pid=\(process.processIdentifier) runtime=0.1.0")
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+        note("launch pid=\(process.processIdentifier) runtime=\(version)")
     }
 
     func call(_ request: [String: Any], completion: @escaping ([String: Any]) -> Void) {

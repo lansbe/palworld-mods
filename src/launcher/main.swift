@@ -5,6 +5,7 @@ import Darwin
 signal(SIGPIPE, SIG_IGN)
 let application = NSApplication.shared
 application.setActivationPolicy(.prohibited)
+if Installation.presentIfNeeded() { exit(0) }
 var retainedHost: Host?
 var launchLock: Int32 = -1
 
