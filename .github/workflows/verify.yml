@@ -1,0 +1,22 @@
+name: Verify
+on:
+  push:
+    branches: [master]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install test runtime
+        run: brew install lua
+      - name: Check source
+        run: python3 scripts/verify.py
+      - name: Build
+        run: |
+          python3 scripts/build.py
+          xcrun swiftc -swift-version 5 -warnings-as-errors -framework AppKit -framework CryptoKit src/launcher/*.swift -o build/launcher-check
+      - name: Test
+        run: lua tests/extensions.lua

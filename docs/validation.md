@@ -1,0 +1,46 @@
+# Validation record
+
+Verified locally on Apple silicon with the supported App Store executable.
+This record describes observed results, not guarantees for every game session.
+
+## Automated checks
+
+- Strict native C++/Objective-C and Swift compilation.
+- Lua source syntax, source file limits and privacy-pattern checks.
+- Mod installation rollback, disable, travel cleanup and shutdown.
+- Minimap coordinate rotation, map-edge clipping, route clipping, incremental
+  boundary calibration and setting bounds.
+- Autonomy goal parsing, lifetime capture quotas, confirmation after actor
+  removal, menu pause, health/reserve rules, camera alignment, route reuse,
+  unreachable pickups and bounded retreat/return retries.
+- Real MCP stdio initialization, tools, invalid requests, argument validation
+  and disconnected transport behavior.
+
+## Game checks
+
+- Independent native runtime attaches without an external loader.
+- Local temporary world loaded through native menu buttons.
+- Native Mods and Minimap settings inspected visually in the game.
+- Catalogue uninstall/reinstall and enable/disable confirmed while in a world.
+- Settings persisted by the standalone Swift launcher; arbitrary evaluation
+  rejected by its production command interface.
+- Bounded walking input moved the player; jump and stop inputs accepted.
+- Inventory and incremental nearby Pal/resource observations returned native data.
+- Return-to-title and normal game shutdown completed with exit status zero.
+- Autonomy installed without starting, reported stopped, and was removed cleanly.
+
+## Limits
+
+A startup hang occurred when requesting exclusive fullscreen before the engine
+initialized. The launcher now starts windowed and applies saved fullscreen from
+the game thread after initialization. It does not repeatedly override later user
+changes. A short initial window transition can still be visible.
+
+Cold minimap construction measured up to approximately 38 ms in the integration
+run. Steady work was much smaller, but this is not a GPU or full-session smoothness
+benchmark. Multiplayer guild visibility, mounted/dungeon transitions and complete
+autonomous capture/gather sessions require additional scenario validation on the
+new runtime. The stable release does not include a room-and-wall dungeon plan.
+
+No native VectorVM crash root cause is claimed. Bounded logs and available macOS
+crash reports are retained locally to support a future diagnosis.

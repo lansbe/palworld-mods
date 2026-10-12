@@ -1,0 +1,39 @@
+# Build outputs and dependencies
+/build/
+/dist/
+/.cache/
+/vendor/
+*.o
+*.a
+*.dylib
+*.dSYM/
+# Local state and credentials
+.env
+.env.*
+!.env.example
+*.log
+*.ips
+*.crash
+*.sav
+*.zip
+*.dmg
+*.pkg
+/local/
+/runtime-data/
+# Editors and tools
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+.idea/
+.vscode/
+
+# Runtime artifacts
+*.sample
+*.sock
+*.pid
+*.sqlite
+*.sqlite-*
+/settings.json
+/config.json
+/live.json
