@@ -23,3 +23,12 @@ Do not add per-mod language settings. Preserve English fallback for unknown loca
 Run scripts/check_localization.py and the relevant behavior tests before delivery.
 Check live language changes and representative long, Cyrillic and Asian text in game.
 Missing languages, missing keys, empty values or mismatched placeholders block release.
+
+## Release naming
+
+Release titles must use `<version> - <short English release name>`, for example
+`0.3.0 - Localization`. Use an ASCII hyphen (`-`, U+002D) with exactly one space
+on either side. Start with the version number, without a `v` or repository name
+prefix. Do not use an en dash or em dash. Use `Initial release` for the first
+release when no feature name is provided. Git tags retain the `v<version>` format.
+Apply this convention whenever creating or renaming a release.
