@@ -35,5 +35,20 @@
   "error.not_running": "Palworld не запущен.",
   "error.queue": "Очередь команд заполнена.",
   "error.timeout": "Игра не ответила за 15 секунд.",
-  "error.starting": "Palworld ещё запускается."
+  "error.starting": "Palworld ещё запускается.",
+  "updates.title": "Обновления",
+  "updates.automatic": "Автоматические обновления",
+  "updates.check": "Проверить обновления",
+  "updates.install": "Установить обновление",
+  "updates.current": "Установлено: {version}",
+  "updates.available": "Доступна версия {version}",
+  "updates.checking": "Проверка…",
+  "updates.downloading": "Загрузка…",
+  "updates.ready": "Готово. Установка после закрытия игры.",
+  "updates.latest": "Установлена последняя версия",
+  "updates.failed": "Не удалось обновить. Попробуйте ещё раз.",
+  "updates.connect": "Подключить GitHub",
+  "updates.disconnect": "Отключить GitHub",
+  "updates.token_hint": "Введите токен GitHub с разрешением на чтение Contents для закрытого репозитория palworld-mods. Он будет храниться в Связке ключей Mac.",
+  "updates.authentication": "Подключите GitHub для получения обновлений."
 }

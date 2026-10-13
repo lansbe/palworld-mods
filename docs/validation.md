@@ -117,3 +117,24 @@ new runtime. The stable release does not include a room-and-wall dungeon plan.
 
 No native VectorVM crash root cause is claimed. Bounded logs and available macOS
 crash reports are retained locally to support a future diagnosis.
+
+## App updates (0.4.0)
+
+- Source/privacy checks and all 17 locale catalogues pass. Swift behavior tests
+  cover signed-manifest tampering, archive bounds, wrong bundle/platform,
+  numeric version selection and persisted automatic-update preferences.
+- A signed disposable app was replaced atomically, its previous version retained,
+  and corrupt archives and equal-version reinstalls rejected. The integration
+  test reproduces Foundation's cached bundle metadata and reads fresh plist bytes
+  after replacement to prevent an incorrect rollback.
+- The real helper refused installation while Palworld was running. After normal
+  title-screen shutdown, it replaced the installed 0.3.0 app with 0.4.0 and retained
+  the previous app. The new launcher and native Mods menu opened successfully.
+- Native controls connected the existing GitHub login, checked the private release
+  API, disabled automatic updates and performed a manual check while disabled.
+- The Updates page was inspected in French, German, Russian and Japanese. Live
+  language changes preserved the page and its controls; Automatic restored French.
+
+These checks do not establish notarization, first-download behavior on another
+Mac, or performance across a full multiplayer session. Current local builds use
+ad hoc code signing plus a separate pinned Ed25519 release signature.

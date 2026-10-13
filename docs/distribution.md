@@ -2,8 +2,8 @@
 
 The release format is a compressed, read-only disk image with two visible items:
 **Palworld Mods.app** and **Applications**. Users drag the app to the folder,
-eject the image and launch the installed app. No shell script, installer helper,
-background installation service or administrator daemon is required.
+eject the image and launch the installed app. The disk-image installation needs no shell script, background service or
+administrator daemon. App updates use a bundled, short-lived unprivileged helper.
 
 The app name deliberately differs from the licensed game. Finder handles copying
 and replacement through the usual macOS dialogs. Mod settings remain in the same
@@ -18,7 +18,7 @@ Xcode Command Line Tools and Python 3.12 or newer, then run:
 python3 -m venv .venv
 .venv/bin/python -m pip install --require-hashes -r scripts/requirements-packaging.txt
 .venv/bin/python scripts/package_dmg.py
-.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.2.0-macos-arm64.dmg
+.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.4.0-macos-arm64.dmg
 ```
 
 `VERSION` controls the app metadata and image filename. `scripts/assets.swift`
@@ -60,3 +60,6 @@ its matching `.sha256` file together. Do not replace a release asset silently.
 
 See Apple's [notarization requirements](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)
 and [distribution signing guide](https://developer.apple.com/documentation/xcode/creating-distribution-signed-code-for-the-mac/).
+
+Build and publish the signed update assets alongside each disk image. See
+[the update release workflow](updates.md).

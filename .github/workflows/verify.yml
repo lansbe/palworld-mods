@@ -17,7 +17,8 @@ jobs:
       - name: Build
         run: |
           python3 scripts/build.py
-          xcrun swiftc -swift-version 5 -warnings-as-errors -framework AppKit -framework CryptoKit src/launcher/*.swift -o build/launcher-check
+          xcrun swiftc -swift-version 5 -warnings-as-errors -framework AppKit -framework CryptoKit -framework Security src/update/*.swift src/launcher/*.swift -o build/launcher-check
+          xcrun swiftc -swift-version 5 -warnings-as-errors -framework AppKit -framework CryptoKit src/update/*.swift src/update-installer/main.swift -o build/installer-check
           xcrun swift scripts/assets.swift build/distribution-assets
           xcrun iconutil --convert icns build/distribution-assets/AppIcon.iconset --output build/distribution-assets/AppIcon.icns
       - name: Test
@@ -27,3 +28,5 @@ jobs:
           lua tests/settings.lua
           lua tests/localization.lua
           lua tests/tree.lua
+          lua tests/updates.lua
+          python3 scripts/test_updates.py

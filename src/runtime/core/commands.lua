@@ -16,6 +16,7 @@ function Commands.run(request)
     if method=='game.stop' then return require('core.motion').stop() end
     if method=='display.get' then return require('core.display').get() end
     if method=='display.fullscreen' then return require('core.display').fullscreen() end
+    if method=='updates.state' then return require('ui.updates').set(request.state) end
     if method=='ping' then return {api=1, runtime='native'} end
     if method=='game.state' then return Game.state() end
     if method=='ui.open' then return Control.open(request.menu) end

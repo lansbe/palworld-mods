@@ -23,7 +23,7 @@ func fail(_ error: Error) -> Never {
 do {
     guard let resources = Bundle.main.resourceURL else { throw HostError.message(L10n.text("launcher.bundle")) }
     let paths = try Paths(resources: resources)
-    launchLock = open(paths.root.appendingPathComponent("launcher.lock").path, O_CREAT | O_RDWR, 0o600)
+    launchLock = open(paths.root.appendingPathComponent("launcher.lock").path, O_CREAT | O_RDWR | O_CLOEXEC, 0o600)
     guard launchLock >= 0 else { throw HostError.message(L10n.text("launcher.lock")) }
     if flock(launchLock, LOCK_EX | LOCK_NB) != 0 { exit(0) }
     if !NSRunningApplication.runningApplications(withBundleIdentifier: "com.pocketpair.palworld.mac").isEmpty {

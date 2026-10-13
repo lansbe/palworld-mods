@@ -51,10 +51,15 @@ local function action(instance,label,callback,muted,verb)
     return Native.action(instance.owner,instance.list,label,callback,instance.callbacks,muted,verb)
 end
 render=function(instance,page)
-    begin(instance,page or 'mods',I18n.core(page=='catalog' and 'menu.manage' or 'menu.mods'))
+    begin(instance,page or 'mods',I18n.core(page=='updates' and 'updates.title' or page=='catalog' and 'menu.manage' or 'menu.mods'))
+    if page=='updates' then
+        require('ui.updates').render(instance,action,function() render(instance) end)
+        return
+    end
     if page=='catalog' then action(instance,I18n.core('common.back'),function() render(instance) end)
     else
         action(instance,I18n.core('menu.manage'),function() render(instance,'catalog') end)
+        action(instance,I18n.core('updates.title'),function() render(instance,'updates') end)
         local ids,labels=I18n.choices()
         Settings.field(instance,{key='language',label=I18n.core('language.title'),options=ids,optionLabels=labels},I18n.mode,Menu.model.language)
     end
@@ -104,7 +109,7 @@ function Menu.refresh()
         if Engine.valid(instance.owner) and instance.panel then
             local offset=instance.list:GetScrollOffset()
             if instance.modId and Menu.model.active(instance.modId) then Menu.model.settings(instance,instance.modId)
-            else render(instance,instance.page=='catalog' and 'catalog' or nil) end
+            else render(instance,instance.page) end
             instance.list:SetScrollOffset(offset)
         end
     end

@@ -35,5 +35,20 @@
   "error.not_running": "Palworld가 실행 중이 아닙니다.",
   "error.queue": "명령 대기열이 가득 찼습니다.",
   "error.timeout": "게임이 15초 안에 응답하지 않았습니다.",
-  "error.starting": "Palworld가 시작 중입니다."
+  "error.starting": "Palworld가 시작 중입니다.",
+  "updates.title": "업데이트",
+  "updates.automatic": "자동 업데이트",
+  "updates.check": "업데이트 확인",
+  "updates.install": "업데이트 설치",
+  "updates.current": "설치된 버전: {version}",
+  "updates.available": "버전 {version} 사용 가능",
+  "updates.checking": "확인 중…",
+  "updates.downloading": "다운로드 중…",
+  "updates.ready": "준비 완료. 게임 종료 시 설치됩니다.",
+  "updates.latest": "최신 버전입니다",
+  "updates.failed": "업데이트에 실패했습니다. 다시 시도하세요.",
+  "updates.connect": "GitHub 연결",
+  "updates.disconnect": "GitHub 연결 해제",
+  "updates.token_hint": "비공개 palworld-mods 저장소의 Contents 읽기 권한이 있는 GitHub 토큰을 입력하세요. 토큰은 Mac 키체인에 저장됩니다.",
+  "updates.authentication": "업데이트를 받으려면 GitHub에 연결하세요."
 }

@@ -35,5 +35,20 @@
   "error.not_running": "Palworld tidak berjalan.",
   "error.queue": "Antrean perintah penuh.",
   "error.timeout": "Game tidak merespons dalam 15 detik.",
-  "error.starting": "Palworld masih memulai."
+  "error.starting": "Palworld masih memulai.",
+  "updates.title": "Pembaruan",
+  "updates.automatic": "Pembaruan otomatis",
+  "updates.check": "Periksa pembaruan",
+  "updates.install": "Pasang pembaruan",
+  "updates.current": "Terpasang: {version}",
+  "updates.available": "Versi {version} tersedia",
+  "updates.checking": "Memeriksa…",
+  "updates.downloading": "Mengunduh…",
+  "updates.ready": "Siap. Dipasang saat Anda keluar dari game.",
+  "updates.latest": "Sudah terbaru",
+  "updates.failed": "Pembaruan gagal. Coba lagi.",
+  "updates.connect": "Hubungkan GitHub",
+  "updates.disconnect": "Putuskan GitHub",
+  "updates.token_hint": "Masukkan token GitHub dengan izin baca Contents untuk repositori privat palworld-mods. Token disimpan di Rantai Kunci Mac Anda.",
+  "updates.authentication": "Hubungkan GitHub untuk mengakses pembaruan."
 }

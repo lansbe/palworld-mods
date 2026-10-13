@@ -35,5 +35,20 @@
   "error.not_running": "Palworld çalışmıyor.",
   "error.queue": "Komut kuyruğu dolu.",
   "error.timeout": "Oyun 15 saniye içinde yanıt vermedi.",
-  "error.starting": "Palworld hâlâ başlatılıyor."
+  "error.starting": "Palworld hâlâ başlatılıyor.",
+  "updates.title": "Güncellemeler",
+  "updates.automatic": "Otomatik güncellemeler",
+  "updates.check": "Güncellemeleri denetle",
+  "updates.install": "Güncellemeyi yükle",
+  "updates.current": "Yüklü sürüm: {version}",
+  "updates.available": "{version} sürümü mevcut",
+  "updates.checking": "Denetleniyor…",
+  "updates.downloading": "İndiriliyor…",
+  "updates.ready": "Hazır. Oyundan çıkınca yüklenecek.",
+  "updates.latest": "Güncel",
+  "updates.failed": "Güncelleme başarısız. Tekrar deneyin.",
+  "updates.connect": "GitHub’a bağlan",
+  "updates.disconnect": "GitHub bağlantısını kes",
+  "updates.token_hint": "Özel palworld-mods deposu için Contents okuma iznine sahip bir GitHub erişim belirteci girin. Belirteç Mac Anahtar Zinciri’nde saklanır.",
+  "updates.authentication": "Güncellemelere erişmek için GitHub’a bağlanın."
 }

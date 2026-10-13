@@ -35,5 +35,20 @@
   "error.not_running": "Palworld no está en ejecución.",
   "error.queue": "La cola de comandos está llena.",
   "error.timeout": "El juego no respondió en 15 segundos.",
-  "error.starting": "Palworld todavía está iniciando."
+  "error.starting": "Palworld todavía está iniciando.",
+  "updates.title": "Actualizaciones",
+  "updates.automatic": "Actualizaciones automáticas",
+  "updates.check": "Buscar actualizaciones",
+  "updates.install": "Instalar actualización",
+  "updates.current": "Instalada: {version}",
+  "updates.available": "Versión {version} disponible",
+  "updates.checking": "Buscando…",
+  "updates.downloading": "Descargando…",
+  "updates.ready": "Lista. Se instalará al cerrar el juego.",
+  "updates.latest": "Actualizado",
+  "updates.failed": "La actualización falló. Inténtalo de nuevo.",
+  "updates.connect": "Conectar GitHub",
+  "updates.disconnect": "Desconectar GitHub",
+  "updates.token_hint": "Ingresa un token de GitHub con permiso de lectura de Contents para el repositorio privado palworld-mods. Se guardará en el Llavero de tu Mac.",
+  "updates.authentication": "Conecta GitHub para acceder a las actualizaciones."
 }

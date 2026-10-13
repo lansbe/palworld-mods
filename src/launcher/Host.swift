@@ -5,18 +5,28 @@ final class Host {
     private let catalog: Catalog
     private let queue = DispatchQueue(label: "org.palworldmods.host")
     private var server: SocketServer?
+    private let updates: UpdateController
     private var ready = false
     var onExit: ((Int32) -> Void)?
     let paths: Paths
 
     init(paths: Paths) throws {
         self.paths = paths
+        updates = try UpdateController(root: paths.root, queue: queue)
         catalog = try Catalog(paths: paths)
         runtime = Runtime(paths: paths)
+        updates.onChange = { [weak self] state in
+            guard let self = self, self.ready else { return }
+            self.runtime.call(["method": "updates.state", "state": state]) { _ in }
+        }
+        updates.note = { [weak self] in self?.runtime.note($0) }
         runtime.onEvent = { [weak self] event in self?.queue.async { self?.event(event) } }
         runtime.onExit = { [weak self] code in
-            self?.server?.stop()
-            self?.onExit?(code)
+            self?.queue.async {
+                self?.server?.stop()
+                self?.updates.gameExited(normally: code == 0)
+                self?.onExit?(code)
+            }
         }
     }
 
@@ -25,16 +35,25 @@ final class Host {
             self?.queue.async { self?.command(request, reply: reply) }
         }
         try server?.start()
-        do { try runtime.start() } catch { server?.stop(); throw error }
+        do { try runtime.start(); updates.start() } catch { server?.stop(); throw error }
     }
 
     private func event(_ event: [String: Any]) {
         switch event["event"] as? String {
         case "ready":
             ready = true
+            runtime.call(["method": "updates.state", "state": updates.snapshot]) { _ in }
             runtime.call(["method": "language.configure", "language": L10n.mode]) { _ in }
             runtime.call(["method": "mods.catalog", "catalog": catalog.listing()]) { _ in }
             for id in catalog.installed() { install(id) { [weak self] in self?.feedback($0) } }
+        case "update_request":
+            var request = event
+            request["method"] = "updates." + ((event["operation"] as? String) ?? "")
+            command(request) { [weak self] response in
+                if response["ok"] as? Bool != true {
+                    self?.runtime.call(["method": "mods.feedback", "key": "updates.failed"]) { _ in }
+                }
+            }
         case "language_detected":
             guard let language = event["language"] as? String else { return }
             do { try L10n.detected(language) }
@@ -66,6 +85,11 @@ final class Host {
     private func command(_ request: [String: Any], reply: @escaping ([String: Any]) -> Void) {
         guard let method = request["method"] as? String else { reply(["ok": false, "result": "Missing method."]); return }
         if method == "host.status" { reply(["ok": true, "result": ["running": runtime.running, "ready": ready, "api": 1]]); return }
+        if method.hasPrefix("updates.") {
+            do { reply(["ok": true, "result": try updates.command(request)]) }
+            catch { reply(["ok": false, "result": L10n.text("updates.failed")]) }
+            return
+        }
         guard ready else { reply(["ok": false, "result": L10n.text("error.starting")]); return }
         if method == "language.set" {
             do {

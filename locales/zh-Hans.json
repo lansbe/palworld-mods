@@ -35,5 +35,20 @@
   "error.not_running": "Palworld 未运行。",
   "error.queue": "命令队列已满。",
   "error.timeout": "游戏未在 15 秒内响应。",
-  "error.starting": "Palworld 仍在启动。"
+  "error.starting": "Palworld 仍在启动。",
+  "updates.title": "更新",
+  "updates.automatic": "自动更新",
+  "updates.check": "检查更新",
+  "updates.install": "安装更新",
+  "updates.current": "已安装：{version}",
+  "updates.available": "版本 {version} 可用",
+  "updates.checking": "正在检查…",
+  "updates.downloading": "正在下载…",
+  "updates.ready": "已就绪，将在退出游戏后安装。",
+  "updates.latest": "已是最新版本",
+  "updates.failed": "更新失败，请重试。",
+  "updates.connect": "连接 GitHub",
+  "updates.disconnect": "断开 GitHub",
+  "updates.token_hint": "输入具有私有仓库 palworld-mods 的 Contents 读取权限的 GitHub 令牌。令牌将保存在 Mac 钥匙串中。",
+  "updates.authentication": "连接 GitHub 以获取更新。"
 }

@@ -35,5 +35,20 @@
   "error.not_running": "Palworld không chạy.",
   "error.queue": "Hàng đợi lệnh đã đầy.",
   "error.timeout": "Trò chơi không phản hồi trong 15 giây.",
-  "error.starting": "Palworld vẫn đang khởi động."
+  "error.starting": "Palworld vẫn đang khởi động.",
+  "updates.title": "Cập nhật",
+  "updates.automatic": "Tự động cập nhật",
+  "updates.check": "Kiểm tra cập nhật",
+  "updates.install": "Cài đặt bản cập nhật",
+  "updates.current": "Đã cài: {version}",
+  "updates.available": "Có phiên bản {version}",
+  "updates.checking": "Đang kiểm tra…",
+  "updates.downloading": "Đang tải xuống…",
+  "updates.ready": "Sẵn sàng. Sẽ cài khi thoát trò chơi.",
+  "updates.latest": "Đã là bản mới nhất",
+  "updates.failed": "Cập nhật thất bại. Hãy thử lại.",
+  "updates.connect": "Kết nối GitHub",
+  "updates.disconnect": "Ngắt kết nối GitHub",
+  "updates.token_hint": "Nhập mã truy cập GitHub có quyền đọc Contents cho kho riêng tư palworld-mods. Mã sẽ được lưu trong Chuỗi khóa của máy Mac.",
+  "updates.authentication": "Kết nối GitHub để tải bản cập nhật."
 }

@@ -35,5 +35,20 @@
   "error.not_running": "Palworld ไม่ได้ทำงาน",
   "error.queue": "คิวคำสั่งเต็ม",
   "error.timeout": "เกมไม่ตอบกลับภายใน 15 วินาที",
-  "error.starting": "Palworld กำลังเริ่มต้น"
+  "error.starting": "Palworld กำลังเริ่มต้น",
+  "updates.title": "การอัปเดต",
+  "updates.automatic": "อัปเดตอัตโนมัติ",
+  "updates.check": "ตรวจสอบการอัปเดต",
+  "updates.install": "ติดตั้งอัปเดต",
+  "updates.current": "ติดตั้งแล้ว: {version}",
+  "updates.available": "มีเวอร์ชัน {version}",
+  "updates.checking": "กำลังตรวจสอบ…",
+  "updates.downloading": "กำลังดาวน์โหลด…",
+  "updates.ready": "พร้อมแล้ว จะติดตั้งเมื่อออกจากเกม",
+  "updates.latest": "เป็นเวอร์ชันล่าสุดแล้ว",
+  "updates.failed": "อัปเดตไม่สำเร็จ โปรดลองอีกครั้ง",
+  "updates.connect": "เชื่อมต่อ GitHub",
+  "updates.disconnect": "ยกเลิกการเชื่อมต่อ GitHub",
+  "updates.token_hint": "ป้อนโทเค็น GitHub ที่มีสิทธิ์อ่าน Contents สำหรับคลังส่วนตัว palworld-mods โทเค็นจะเก็บไว้ในพวงกุญแจของ Mac",
+  "updates.authentication": "เชื่อมต่อ GitHub เพื่อเข้าถึงการอัปเดต"
 }

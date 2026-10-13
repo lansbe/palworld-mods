@@ -19,7 +19,19 @@ arrows, sliders and scrollable panel; there is no separate management window.
 The installer includes Minimap and requires no Terminal commands or additional
 downloads. **Palworld Mods.app** is a separate app; it does not replace the
 licensed **Palworld.app**. Settings carry over from previous launcher versions.
-To update, close the game, drag the new app into Applications and choose Replace.
+**Options → Mods → Updates** controls app updates. Automatic updates are enabled
+by default and can be disabled at any time; your choice survives relaunches.
+Connect GitHub once for access to the private release repository. An existing
+GitHub CLI login can be reused, or enter a read-only repository token in the
+secure macOS dialog. Credentials stay in Keychain, never in settings or logs.
+
+The app checks in the background at launch when due, then at most every six
+hours. Signed updates download without interrupting play and install after a
+normal game exit. **Check for updates** and **Install update** also work with
+automatic updates disabled. Installation completes before the next launch; the
+running game is never forcibly restarted. Turning automatic updates off cancels
+any pending download or installation. You can still replace the app manually
+using a release disk image.
 
 **Manage mods** installs or removes bundled mods immediately. An absent mod is
 gray; select it to install. Select an installed mod on the Mods page to change
@@ -83,10 +95,12 @@ lua tests/extensions.lua
 lua tests/settings.lua
 lua tests/localization.lua
 lua tests/tree.lua
+lua tests/updates.lua
+python3 scripts/test_updates.py
 python3 -m venv .venv
 .venv/bin/python -m pip install --require-hashes -r scripts/requirements-packaging.txt
 .venv/bin/python scripts/package_dmg.py
-.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.3.0-macos-arm64.dmg
+.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.4.0-macos-arm64.dmg
 ```
 
 The build downloads checksum-pinned Lua sources. `dist/Palworld Mods.app` contains
@@ -98,6 +112,9 @@ the app. Game assets are resolved from the licensed game and are never packaged.
 `src/native` provides checked Unreal reflection, weak handles, native input and
 bounded transport. `src/runtime` owns the menu, lifecycle and shared game API.
 `src/launcher` manages launch, local IPC, installation state and diagnostics.
+`src/update` contains signed-package validation and atomic replacement;
+`src/update-installer` is an unprivileged helper that exits after installation.
+See [updates](docs/updates.md) for the release and validation workflow.
 
 `python3 scripts/build.py --development` explicitly adds an evaluation command
 for local development. The app packager always builds without that command;

@@ -53,13 +53,20 @@ def assemble(app, assets, identity):
     contents = app / 'Contents'
     executable = contents / 'MacOS'
     resources = contents / 'Resources'
-    for folder in [executable, resources / 'Catalog']:
+    for folder in [executable, contents / 'Helpers', resources / 'Catalog']:
         folder.mkdir(parents=True, exist_ok=True)
     subprocess.run(['xcrun', 'swiftc', '-swift-version', '5', '-O', '-warnings-as-errors',
                     '-file-prefix-map', f'{ROOT}=.', '-debug-prefix-map', f'{ROOT}=.',
-                    '-target', 'arm64-apple-macos14.0', '-framework', 'AppKit', '-framework', 'CryptoKit',
+                    '-target', 'arm64-apple-macos14.0', '-framework', 'AppKit', '-framework', 'CryptoKit', '-framework', 'Security',
+                    *map(str, sorted((ROOT / 'src/update').glob('*.swift'))),
                     *map(str, sorted((ROOT / 'src/launcher').glob('*.swift'))),
                     '-o', str(executable / 'PalworldMods')], check=True)
+    subprocess.run(['xcrun', 'swiftc', '-swift-version', '5', '-O', '-warnings-as-errors',
+                    '-file-prefix-map', f'{ROOT}=.', '-target', 'arm64-apple-macos14.0',
+                    '-framework', 'AppKit', '-framework', 'CryptoKit',
+                    *map(str, sorted((ROOT / 'src/update').glob('*.swift'))),
+                    str(ROOT / 'src/update-installer/main.swift'),
+                    '-o', str(contents / 'Helpers/UpdateInstaller')], check=True)
     shutil.copy2(ROOT / 'build/libPalMods.dylib', resources)
     shutil.copy2(ROOT / 'THIRD_PARTY_NOTICES.md', resources)
     shutil.copy2(ROOT / 'LICENSE', resources)
@@ -75,6 +82,7 @@ def assemble(app, assets, identity):
                 'LSArchitecturePriority': ['arm64'], 'NSHighResolutionCapable': True}
     (contents / 'Info.plist').write_bytes(plistlib.dumps(metadata))
     sign(resources / 'libPalMods.dylib', identity)
+    sign(contents / 'Helpers/UpdateInstaller', identity)
     sign(app, identity)
     subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
 

@@ -35,5 +35,20 @@
   "error.not_running": "Palworldは起動していません。",
   "error.queue": "コマンドの待機キューがいっぱいです。",
   "error.timeout": "ゲームが15秒以内に応答しませんでした。",
-  "error.starting": "Palworldは起動中です。"
+  "error.starting": "Palworldは起動中です。",
+  "updates.title": "アップデート",
+  "updates.automatic": "自動アップデート",
+  "updates.check": "更新を確認",
+  "updates.install": "アップデートをインストール",
+  "updates.current": "インストール済み：{version}",
+  "updates.available": "バージョン {version} が利用可能",
+  "updates.checking": "確認中…",
+  "updates.downloading": "ダウンロード中…",
+  "updates.ready": "準備完了。ゲーム終了時にインストールします。",
+  "updates.latest": "最新の状態です",
+  "updates.failed": "更新に失敗しました。再試行してください。",
+  "updates.connect": "GitHub に接続",
+  "updates.disconnect": "GitHub の接続を解除",
+  "updates.token_hint": "非公開リポジトリ palworld-mods の Contents 読み取り権限を持つ GitHub トークンを入力してください。トークンは Mac のキーチェーンに保存されます。",
+  "updates.authentication": "アップデートを取得するには GitHub に接続してください。"
 }

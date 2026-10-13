@@ -20,7 +20,7 @@ def verify_app(app):
     resources = contents / 'Resources'
     if not (resources / info['CFBundleIconFile']).is_file():
         raise ValueError('Missing app icon.')
-    for binary in [contents / 'MacOS/PalworldMods', resources / 'libPalMods.dylib']:
+    for binary in [contents / 'MacOS/PalworldMods', resources / 'libPalMods.dylib', contents / 'Helpers/UpdateInstaller']:
         architectures = subprocess.check_output(['lipo', '-archs', str(binary)], text=True).strip()
         if architectures != 'arm64':
             raise ValueError('The app must contain only its supported Apple silicon build.')
