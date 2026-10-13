@@ -24,6 +24,9 @@ void bind(lua_State* state);
 void bindJson(lua_State* state);
 void bindInput(lua_State* state);
 void bindEnums(lua_State* state);
+void pushOpaqueStructure(lua_State* state, void* schema, void* data, size_t size);
+bool copyOpaqueStructure(lua_State* state, int index, void* schema, void* destination);
+void copyStructure(void* schema, void* destination, const void* source);
 int invoke(lua_State* state);
 void tick(float delta);
 }

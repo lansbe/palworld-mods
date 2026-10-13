@@ -12,6 +12,10 @@ external mod manager, Python service or package manager to run while playing.
 4. Close Palworld once, then open **Palworld Mods** from Applications.
 5. In the game, open **Options → Mods**.
 
+Mods appears as a category inside Palworld's native settings screen. The pause
+menu also has a Mods shortcut. Mod settings use the game's own switches, choice
+arrows, sliders and scrollable panel; there is no separate management window.
+
 The installer includes Minimap and requires no Terminal commands or additional
 downloads. **Palworld Mods.app** is a separate app; it does not replace the
 licensed **Palworld.app**. Settings carry over from previous launcher versions.
@@ -59,10 +63,11 @@ Then run:
 python3 scripts/verify.py
 python3 -m unittest discover -s tests -p 'test_*.py'
 lua tests/extensions.lua
+lua tests/settings.lua
 python3 -m venv .venv
 .venv/bin/python -m pip install --require-hashes -r scripts/requirements-packaging.txt
 .venv/bin/python scripts/package_dmg.py
-.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.2.0-macos-arm64.dmg
+.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.2.1-macos-arm64.dmg
 ```
 
 The build downloads checksum-pinned Lua sources. `dist/Palworld Mods.app` contains
@@ -78,6 +83,9 @@ bounded transport. `src/runtime` owns the menu, lifecycle and shared game API.
 `python3 scripts/build.py --development` explicitly adds an evaluation command
 for local development. The app packager always builds without that command;
 the production host never exposes arbitrary evaluation or external packages.
+With Options open in a development runtime, `tests/native_settings.lua` can be
+evaluated through that development probe to verify real native control behavior.
+It is not a standalone Lua test and does not run against a mocked engine.
 
 ## Local data and diagnostics
 

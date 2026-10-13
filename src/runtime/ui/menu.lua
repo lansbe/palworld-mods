@@ -1,173 +1,163 @@
-local Widgets = require('ui.widgets')
-local Tree = require('ui.tree')
-local Registry = require('core.registry')
-local Menu = {instances={}, model={}}
-local function close(instance)
-    if instance.panel and Engine.valid(instance.panel) then instance.panel:RemoveFromParent() end
-    for _,entry in ipairs(instance.hidden or {}) do
-        if Engine.valid(entry.widget) then entry.widget:SetVisibility(entry.visibility) end
-    end
-    instance.hidden={}
-    instance.panel = nil
-    instance.page = nil
-end
-local function cover(instance)
-    instance.hidden={}
-    for index=0,instance.root:GetChildrenCount()-1 do
-        local child=instance.root:GetChildAt(index)
-        instance.hidden[#instance.hidden+1]={widget=child,visibility=child:GetVisibility()}
-        child:SetVisibility(1)
-    end
-end
+local Native=require('ui.native')
+local Settings=require('ui.settings')
+local Tree=require('ui.tree')
+local Registry=require('core.registry')
+local Menu={instances={},model={},subscriptions={}}
 local render
-render=function(instance, page)
-    close(instance)
-    cover(instance)
-    local widgets = Widgets.new(instance.owner)
-    local panel = widgets:make('CanvasPanel')
-    widgets:fill(instance.root, panel, 1000)
-    widgets:fill(panel, widgets:make('Border'), 0)
-    local backdrop = panel:GetChildAt(0)
-    backdrop:SetBrushColor(Widgets.colors.background)
-    instance.panel, instance.page, instance.route, instance.modId = panel, widgets, page, nil
-    widgets:text(panel, page == 'catalog' and 'Manage mods' or 'Mods', 100, 60, 700, 65, 38)
-    widgets:button(panel, 'Back', 100, 780, 190, 54, function()
-        if page=='catalog' then render(instance) else close(instance) end
-    end)
-    local rows = Menu.model.list()
-    if page ~= 'catalog' then
-        widgets:button(panel, 'Manage mods', 100, 150, 800, 64, function() render(instance, 'catalog') end)
+local function hide(instance,widget)
+    if Engine.valid(widget) then
+        instance.hidden[#instance.hidden+1]={widget=widget,visibility=widget:GetVisibility()}
+        widget:SetVisibility(1)
     end
-    local y = page == 'catalog' and 150 or 238
-    for _, mod in ipairs(rows or {}) do
-        widgets:button(panel, mod.name .. (page == 'catalog' and mod.installed and '  ·  Uninstall' or ''), 100, y, 800, 64, function()
+end
+local function close(instance,nativeSwitch,discard)
+    if not instance.panel then return end
+    if not discard then Settings.poll(instance,true) end
+    if Engine.valid(instance.panel) then instance.panel:RemoveFromParent() end
+    local owner=instance.owner
+    local tab=Engine.valid(owner) and owner.WBP_OptionSettings_Tab
+    for _,entry in ipairs(instance.hidden) do
+        if Engine.valid(entry.widget) and (not nativeSwitch or not Engine.valid(tab) or entry.widget.key~=tab.key) then
+            entry.widget:SetVisibility(entry.visibility)
+        end
+    end
+    if Engine.valid(owner) and owner:IsActivated() then
+        owner.DefaultActionBinding=owner:RegisterActionBinding(owner.DefaultActionName,false,0,
+            {object=owner,['function']='SetDefaultAction'})
+        if not nativeSwitch then owner['Set Tab Action'](owner,owner.WBP_OptionSettings_Tab:IsVisible()) end
+    end
+    instance.panel,instance.list,instance.page,instance.modId=nil,nil,nil,nil
+    instance.controls,instance.callbacks,instance.hidden={},{},{}
+end
+local function begin(instance,page,title)
+    close(instance,false,true)
+    local owner=instance.owner
+    owner.CanvasPanel_Settings:SetVisibility(0)
+    instance.hidden={}
+    local panel,list=Native.scroll(owner)
+    instance.panel,instance.list,instance.page=panel,list,page
+    instance.controls,instance.callbacks={},{ }
+    hide(instance,owner.WBP_PalCommonScrollList)
+    hide(instance,owner.WBP_OptionSettings_Tab)
+    hide(instance,owner.WBP_PalKeyGuideIcon_Default)
+    hide(instance,owner.BP_PalTextBlock_Default)
+    owner:UnregisterActionBinding(owner.DefaultActionBinding)
+    owner['Set Tab Action'](owner,false)
+    Native.heading(owner,list,title)
+end
+local function action(instance,label,callback,muted,verb)
+    return Native.action(instance.owner,instance.list,label,callback,instance.callbacks,muted,verb)
+end
+render=function(instance,page)
+    begin(instance,page or 'mods',page=='catalog' and 'Manage mods' or 'Mods')
+    if page=='catalog' then action(instance,'Back',function() render(instance) end)
+    else action(instance,'Manage mods',function() render(instance,'catalog') end) end
+    for _,mod in ipairs(Menu.model.list() or {}) do
+        action(instance,mod.name,function()
             if not mod.installed then Menu.model.install(mod.id)
-            elseif page == 'catalog' then Menu.model.remove(mod.id)
-            else Menu.model.settings(instance, mod.id) end
-        end, not mod.installed)
-        y = y + 76
+            elseif page=='catalog' then Menu.model.remove(mod.id)
+            else Menu.model.settings(instance,mod.id) end
+        end,not mod.installed,page=='catalog' and (mod.installed and 'Uninstall' or 'Install') or nil)
     end
 end
 local function attach(owner)
     if not Engine.valid(owner) or Menu.instances[owner.key] then return end
-    local root = owner.WidgetTree and owner.WidgetTree.RootWidget
-    if not root or not root.AddChildToCanvas then return end
-    local widgets = Widgets.new(owner)
-    local top=owner
+    if not owner.WidgetTree or not owner.WidgetTree.RootWidget then return end
+    local instance={owner=owner,controls={},callbacks={},hidden={},nativeButtons={}}
     if owner.class.name=='WBP_MenuESC_C' then
-        for _,candidate in ipairs(Registry.get('WBP_InGameMainMenu_C')) do
-            if Tree.visible(candidate) then top=candidate;root=top.WidgetTree.RootWidget;break end
+        local template=Tree.find(owner,'WBP_MenuESC_Button_Option')
+        if not template then return end
+        instance.entry,instance.button=Native.sidebar(owner,template,'Mods')
+        instance.open=function()
+            Menu.pending=Engine.clock()+5
+            assert(Tree.find(template,'WBP_PalInvisibleButton')):HandleButtonClicked()
         end
-    end
-    local instance = {owner=owner,top=top, root=root, entryWidgets=widgets}
-    if owner.class.name == 'WBP_MenuESC_C' then
-        local group = Tree.find(owner, 'VerticalBox_91')
-        if not group then return end
-        local size = widgets:make('SizeBox')
-        size:SetHeightOverride(64)
-        local holder = widgets:make('CanvasPanel')
-        size:SetContent(holder)
-        group:AddChildToVerticalBox(size)
-        local button = widgets:button(holder, 'Mods', 0, 0, 410, 60, function() render(instance) end)
-        instance.entry = size
-        instance.button = button.input
     else
-        local button = widgets:button(root, 'Mods', 100, 660, 300, 60, function() render(instance) end)
-        instance.entry, instance.button = button.group, button.input
+        local template=owner.WBP_OptionSettings_MenuButton_Graphic
+        if not Engine.valid(template) then return end
+        for _,name in ipairs({'Graphic','Sound','Game','Key','Other','S_Mod','S_Form','S_EULA'}) do
+            local entry=owner['WBP_OptionSettings_MenuButton_'..name]
+            local input=Engine.valid(entry) and Tree.find(entry,'WBP_PalInvisibleButton')
+            if input then instance.nativeButtons[input.key]=true end
+        end
+        instance.entry,instance.button=Native.sidebar(owner,template,'Mods')
+        instance.open=function() render(instance) end
     end
-    Menu.instances[owner.key] = instance
+    Menu.instances[owner.key]=instance
 end
 function Menu.start(model)
-    Menu.model = model
-    for _, class in ipairs({'WBP_MenuESC_C', 'WBP_OptionSettings_C'}) do
-        Registry.watch(class, attach)
-        for _, owner in ipairs(Registry.get(class)) do attach(owner) end
+    Menu.model=model
+    for _,class in ipairs({'WBP_MenuESC_C','WBP_OptionSettings_C'}) do
+        Menu.subscriptions[#Menu.subscriptions+1]=Registry.watch(class,attach)
+        for _,owner in ipairs(Registry.get(class)) do attach(owner) end
     end
 end
 function Menu.refresh()
-    for _, instance in pairs(Menu.instances) do
+    for _,instance in pairs(Menu.instances) do
         if Engine.valid(instance.owner) and instance.panel then
             if instance.modId and Menu.model.active(instance.modId) then Menu.model.settings(instance,instance.modId)
-            else render(instance,instance.route) end
+            else render(instance,instance.page=='catalog' and 'catalog' or nil) end
         end
     end
 end
 function Menu.stop()
-    for _, instance in pairs(Menu.instances) do
-        close(instance)
+    for _,unsubscribe in ipairs(Menu.subscriptions) do unsubscribe() end
+    for _,instance in pairs(Menu.instances) do
+        close(instance,false,true)
         if Engine.valid(instance.entry) then instance.entry:RemoveFromParent() end
     end
-    Menu.instances={}
+    Menu.instances,Menu.subscriptions={},{}
 end
 function Menu.settings(instance,id,extensions)
-    close(instance)
-    cover(instance)
-    local widgets=Widgets.new(instance.owner)
-    local panel=widgets:make('CanvasPanel')
-    widgets:fill(instance.root,panel,1000)
-    local backdrop=widgets:make('Border'); backdrop:SetBrushColor(Widgets.colors.background)
-    widgets:fill(panel,backdrop,0)
-    instance.panel,instance.page,instance.modId=panel,widgets,id
-    local item=extensions.active[id]
-    widgets:text(panel,item.name,100,60,800,65,38)
-    widgets:button(panel,'Back',100,780,190,54,function() render(instance) end)
-    widgets:button(panel,'Enabled  ·  '..(item.enabled and 'On' or 'Off'),100,132,800,48,function()
-        extensions.enable(id,not item.enabled);Menu.settings(instance,id,extensions)
+    local item=assert(extensions.active[id],'Mod is no longer installed')
+    begin(instance,'settings',item.name)
+    instance.modId=id
+    action(instance,'Back',function() render(instance) end)
+    Settings.field(instance,{key='enabled',label='Enabled',type='boolean'},item.enabled,function(value)
+        extensions.enable(id,value)
     end)
-    local fields=extensions.call(id,'settings')
-    local function set(field,value)
-        extensions.configure(id,{[field.key]=value})
-        Menu.settings(instance,id,extensions)
-    end
-    for index, field in ipairs(fields) do
-        local x=100+math.floor((index-1)/9)*900
-        local y=204+(index-1)%9*56
-        local value=item.settings[field.key]
-        local label=field.label..'  ·  '..tostring(value)
-        if field.type=='boolean' then
-            label=field.label..'  ·  '..(value and 'On' or 'Off')
-            widgets:button(panel,label,x,y,800,48,function() set(field,not value) end)
-        elseif field.type=='text' then
-            local input=widgets:make('EditableTextBox')
-            input:SetText(tostring(value or ''))
-            widgets:add(panel,input,x,y,630,48,2)
-            input.ToolTipText=field.label
-            widgets:button(panel,'Save',x+650,y,150,48,function() set(field,input:GetText()) end)
-        elseif field.options then
-            widgets:button(panel,label,x,y,800,48,function()
-                local next=1
-                for i,v in ipairs(field.options) do if v==value then next=i%#field.options+1 end end
-                set(field,field.options[next])
-            end)
-        else
-            widgets:text(panel,label,x,y+8,520,38,21)
-            widgets:button(panel,'−',x+560,y,110,48,function() set(field,math.max(field.min,value-field.step)) end)
-            widgets:button(panel,'+',x+690,y,110,48,function() set(field,math.min(field.max,value+field.step)) end)
-        end
+    for _,field in ipairs(extensions.call(id,'settings')) do
+        Settings.field(instance,field,item.settings[field.key],function(value)
+            extensions.configure(id,{[field.key]=value})
+        end)
     end
 end
 function Menu.feedback(message)
     print('[PalMods] '..tostring(message))
     for _,instance in pairs(Menu.instances) do
-        if instance.panel and instance.page then
-            instance.page:text(instance.panel,tostring(message),100,720,1500,44,20)
+        if Engine.valid(instance.panel) then
+            if Engine.valid(instance.feedback) then instance.feedback:RemoveFromParent() end
+            instance.feedback=Native.heading(instance.owner,instance.list,tostring(message))
         end
     end
 end
 function Menu.tick()
-    for key, instance in pairs(Menu.instances) do
-        if not Engine.valid(instance.owner) then Menu.instances[key] = nil
+    local now=Engine.clock()
+    if Menu.pending and now>Menu.pending then Menu.pending=nil end
+    for key,instance in pairs(Menu.instances) do
+        if not Engine.valid(instance.owner) then Menu.instances[key]=nil
         else
-            if instance.panel and not Tree.visible(instance.top) then close(instance) end
-            instance.entryWidgets:hover()
-            if instance.page then instance.page:hover() end
+            local visible=instance.owner:IsActivated() and Tree.visible(instance.owner)
+            if instance.panel and not visible then close(instance) end
+            if visible and instance.owner.class.name=='WBP_OptionSettings_C' and Menu.pending then
+                Menu.pending=nil;render(instance)
+            end
+            if visible and instance.panel and now>=(instance.nextPoll or 0) then
+                instance.nextPoll=now+.1
+                Settings.poll(instance)
+            end
         end
     end
 end
 function Menu.click(button)
-    for _, instance in pairs(Menu.instances) do
-        if instance.page and instance.page:dispatch(button) then return end
-        if instance.entryWidgets:dispatch(button) then return end
+    if not Engine.valid(button) then return end
+    for _,instance in pairs(Menu.instances) do
+        if Engine.valid(instance.owner) then
+            if instance.nativeButtons[button.key] then close(instance,true);return end
+            if instance.button.key==button.key then instance.open();return end
+            local callback=instance.callbacks[button.key]
+            if callback then Settings.poll(instance,true);callback();return end
+        end
     end
 end
 return Menu

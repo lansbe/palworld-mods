@@ -56,7 +56,8 @@ void pushValue(lua_State* state, void* property, void* data, const View* parent)
             new (reference) View{parent->owner, schema,
                 static_cast<size_t>(static_cast<char*>(data) - static_cast<char*>(parent->owner.get())), false};
             luaL_setmetatable(state, "pal.engine.view");
-        } else pushStructure(state, schema, data);
+        } else if (properties(schema).empty()) pushOpaqueStructure(state, schema, data, read<int32_t>(property, 0x38));
+        else pushStructure(state, schema, data);
     } else if (kind == "ArrayProperty") {
         auto array = read<String>(data, 0);
         auto* inner = read<void*>(property, 0x78);
@@ -76,8 +77,9 @@ void setValue(lua_State* state, int index, void* property, void* data) {
     else if (kind == "BoolProperty") {
         if (!lua_isboolean(state, index)) throw std::runtime_error("A boolean is required");
         auto offset = read<uint8_t>(property, 0x79), mask = read<uint8_t>(property, 0x7b);
+        auto setMask = read<uint8_t>(property, 0x7a);
         auto value = read<uint8_t>(data, offset);
-        write<uint8_t>(data, offset, lua_toboolean(state, index) ? value | mask : value & ~mask);
+        write<uint8_t>(data, offset, (value & ~mask) | (lua_toboolean(state, index) ? setMask : 0));
     } else if (kind == "FloatProperty") write<float>(data, 0, number(state, index));
     else if (kind == "DoubleProperty") write(data, 0, number(state, index));
     else if (kind == "IntProperty" || kind == "UInt32Property" || kind == "Int64Property" || kind == "ByteProperty") {
@@ -102,11 +104,9 @@ void setValue(lua_State* state, int index, void* property, void* data) {
         auto* schema = read<void*>(property, 0x78);
         if (auto* source = view(state, index)) {
             if (source->schema != schema) throw std::runtime_error("Structure types differ");
-            auto count = read<int32_t>(property, 0x38);
-            // Plain table conversion prevents borrowing an engine-owned value.
-            pushStructure(state, schema, source->data()); setValue(state, -1, property, data); lua_pop(state, 1);
-            (void)count;
-        } else {
+            // The engine copies ownership correctly, including non-reflected native fields.
+            copyStructure(schema, data, source->data());
+        } else if (!copyOpaqueStructure(state, index, schema, data)) {
             if (!lua_istable(state, index)) throw std::runtime_error("A structure table is required");
             for (auto* field : properties(schema)) {
                 auto key = text(read<Name>(field, 0x28)); lua_getfield(state, index, key.c_str());
@@ -114,8 +114,45 @@ void setValue(lua_State* state, int index, void* property, void* data) {
                 lua_pop(state, 1);
             }
         }
-    } else if (kind == "ArrayProperty" && lua_istable(state, index) && lua_rawlen(state, index) == 0) {
-        // Empty out-parameter arrays are initialized by the engine.
+    } else if (kind == "ArrayProperty" && lua_istable(state, index)) {
+        auto count = lua_rawlen(state, index);
+        auto* inner = read<void*>(property, 0x78);
+        auto size = read<int32_t>(inner, 0x38);
+        if (count > 4096 || size < 1 || size > 65536 || count * size > 16777216)
+            throw std::runtime_error("Array exceeds the assignment limit");
+        lua_pushnil(state);
+        while (lua_next(state, index)) {
+            if (!lua_isinteger(state, -2) || lua_tointeger(state, -2) < 1 ||
+                static_cast<size_t>(lua_tointeger(state, -2)) > count)
+                throw std::runtime_error("A dense array is required");
+            lua_pop(state, 1);
+        }
+        auto* buffer = count ? static_cast<char*>(allocate(count * size)) : nullptr;
+        size_t initialized = 0;
+        try {
+            for (size_t i = 0; i < count; ++i) {
+                initialize(inner, buffer + i * size); ++initialized;
+                lua_rawgeti(state, index, i + 1);
+                if (lua_isnil(state, -1)) throw std::runtime_error("A dense array is required");
+                setValue(state, -1, inner, buffer + i * size); lua_pop(state, 1);
+            }
+        } catch (...) {
+            for (size_t i = 0; i < initialized; ++i) destroy(inner, buffer + i * size);
+            release(buffer); throw;
+        }
+        destroy(property, data); initialize(property, data);
+        write(data, 0, String{reinterpret_cast<char16_t*>(buffer), static_cast<int32_t>(count), static_cast<int32_t>(count)});
+    } else if (kind == "DelegateProperty" && lua_istable(state, index)) {
+        if (read<int32_t>(property, 0x38) != 16) throw std::runtime_error("Unsupported delegate layout");
+        lua_getfield(state, index, "object"); auto* target = object(state, -1); lua_pop(state, 1);
+        lua_getfield(state, index, "function"); auto method = string(state, -1); lua_pop(state, 1);
+        auto* function = target ? findFunction(target, method) : nullptr;
+        auto* signature = read<void*>(property, 0x78);
+        if (!function || !signature || read<uint16_t>(function, 0xb6) || read<uint16_t>(signature, 0xb6))
+            throw std::runtime_error("Incompatible delegate function");
+        Handle handle(target);
+        write<int32_t>(data, 0, handle.index); write<int32_t>(data, 4, handle.serial);
+        write(data, 8, name(method));
     } else throw std::runtime_error("Unsupported property assignment: " + kind);
 }
 }

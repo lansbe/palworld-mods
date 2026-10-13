@@ -24,3 +24,4 @@ jobs:
         run: |
           python3 -m unittest discover -s tests -p 'test_*.py'
           lua tests/extensions.lua
+          lua tests/settings.lua

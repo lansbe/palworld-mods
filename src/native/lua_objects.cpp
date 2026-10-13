@@ -133,6 +133,20 @@ int schema(lua_State* state) {
     }
     return 1;
 }
+#ifdef PALMODS_DEVELOPMENT
+int functions(lua_State* state) {
+    auto* type = object(state, 1);
+    lua_newtable(state); int count = 0;
+    for (unsigned depth = 0; type && depth < 32; type = read<void*>(type, 0x40), ++depth) {
+        if (!Handle(type).get()) throw std::runtime_error("Expired class schema");
+        for (auto* field = read<void*>(type, 0x48); field && count < 512; field = read<void*>(field, 0x28)) {
+            if (!Handle(field).get()) throw std::runtime_error("Expired function schema");
+            pushObject(state, field); lua_rawseti(state, -2, ++count);
+        }
+    }
+    return 1;
+}
+#endif
 }
 void bind(lua_State* state) {
     luaL_newmetatable(state, "pal.engine.view");
@@ -144,5 +158,9 @@ void bind(lua_State* state) {
         {"construct", safe<constructObject>}, {"is_a", safe<isA>}, {"valid", valid}, {"clock", clock},
         {"schema", safe<schema>}, {"subscribe", safe<subscribe>}, {"discoveries", safe<discoveries>}, {"clicks", clicks}, {"messages", messages}, {"quit", safe<quit>}, {nullptr, nullptr}};
     luaL_setfuncs(state, api, 0); lua_setglobal(state, "Engine");
+#ifdef PALMODS_DEVELOPMENT
+    lua_getglobal(state, "Engine");
+    lua_pushcfunction(state, safe<functions>); lua_setfield(state, -2, "functions"); lua_pop(state, 1);
+#endif
 }
 }

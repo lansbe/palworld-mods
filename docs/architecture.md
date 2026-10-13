@@ -18,6 +18,14 @@ controls and weak object discovery. This is an interface boundary for trusted
 bundled code, not a security sandbox for untrusted plugins. Native reflection
 must only be used against a verified executable profile.
 
+The Mods category extends the native Options screen and restores its original
+content and action bindings when changing categories or closing. Native settings
+widgets own interaction; the visible mod page samples changed values at 10 Hz.
+Idle pages do not write settings. Text edits commit on focus loss or page exit.
+Engine boolean writes use the property's byte mask; opaque action-binding values
+use engine-owned struct initialization, copying and destruction. Array assignment
+validates and constructs new storage before replacing the old value.
+
 Rendering uses the game's own UMG widgets. Minimap observations are cached and
 sampled separately from presentation. Discovery scans a bounded number of
 registry slots each frame. Player input leases expire within two seconds and
