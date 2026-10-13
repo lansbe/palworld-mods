@@ -9,9 +9,11 @@ Status changes alone refresh the Updates page. Other game pages are unchanged.
 
 ## Delivery and trust
 
-The source is the private `lansbe/palworld-mods` GitHub repository. Authentication
-requires Contents read permission. Connect GitHub reuses a local GitHub CLI login
-when available; otherwise a native secure-field dialog accepts a repository token.
+The source is the public `lansbe/palworld-mods` GitHub repository. Checks and
+downloads work without an account. After an authentication or rate-limit failure,
+Connect GitHub optionally reuses a local CLI login or accepts a read-only token in
+a native secure-field dialog. Invalid optional credentials fall back to anonymous
+access. Disconnect cancels queued work without making public checks unavailable.
 A selected CLI provider is remembered without copying its token. Its credential
 lookup has a three-second limit. Keychain access runs on a separate utility queue;
 legacy ACL prompts are disabled outside an explicit Connect action. Credential
@@ -61,7 +63,8 @@ privilege escalation, quarantine removal or game/save modification is performed.
    `palworld-mods-update.json` and `palworld-mods-update.sig` to the same stable tag.
 5. Use `<version> - <short English release name>` as the title, and `v<version>`
    as the tag. Prepare assets in a draft release, then publish them together.
-6. Verify the authenticated download and installation in a disposable app copy.
+6. Run `python3 scripts/test_public_updates.py` to verify the published download
+   without credentials, then check installation in a disposable app copy.
 
 A release machine initializes its signing key once with:
 

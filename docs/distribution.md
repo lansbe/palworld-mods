@@ -18,7 +18,7 @@ Xcode Command Line Tools and Python 3.12 or newer, then run:
 python3 -m venv .venv
 .venv/bin/python -m pip install --require-hashes -r scripts/requirements-packaging.txt
 .venv/bin/python scripts/package_dmg.py
-.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.4.1-macos-arm64.dmg
+.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.4.2-macos-arm64.dmg
 ```
 
 `VERSION` controls the app metadata and image filename. `scripts/assets.swift`

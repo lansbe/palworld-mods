@@ -165,3 +165,18 @@ ad hoc code signing plus a separate pinned Ed25519 release signature.
   Updates page and private-release check worked in a loaded local world.
 - The final app returned from that world to the title screen and quit normally,
   with empty runtime error diagnostics. Language remained Automatic.
+
+## Open-source preparation (0.4.2)
+
+- MIT licensing and contribution guides cover all four repositories. Their reachable
+  Git histories were inspected for credential patterns, private keys, personal paths
+  and accidentally tracked runtime data: 336 unique file versions, with no matches.
+- The same bounded pattern checks covered 17 existing Actions logs and 32 release
+  assets, including extracted application contents. No matching personal data or
+  credentials were found. This is a publication hygiene check, not a comprehensive
+  security assessment or proof that every possible secret format was detected.
+- Public-update request tests omit Authorization when no token is configured. The
+  native menu offers check/install without a connection; optional sign-in remains
+  available after rate-limit/authentication failures. Signed-package trust is unchanged.
+- Catalogue packaging preserves each mod's full MIT license. The MCP archive
+  includes its license and uses one VERSION value for package and protocol metadata.

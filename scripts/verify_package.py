@@ -18,6 +18,9 @@ def verify_app(app):
         if info.get(key) != value:
             raise ValueError(f'Unexpected app metadata: {key}')
     resources = contents / 'Resources'
+    license_text = (resources / 'LICENSE').read_text()
+    if not license_text.startswith('MIT License\n') or 'Permission is hereby granted' not in license_text:
+        raise ValueError('The application must include its MIT license.')
     if not (resources / info['CFBundleIconFile']).is_file():
         raise ValueError('Missing app icon.')
     for binary in [contents / 'MacOS/PalworldMods', resources / 'libPalMods.dylib', contents / 'Helpers/UpdateInstaller']:
@@ -35,6 +38,8 @@ def verify_app(app):
             raise ValueError('The bundled mod catalogue failed its integrity check.')
         if package.get('api') != 1 or not package.get('files') or len(data) > 1_048_576:
             raise ValueError('The bundled mod catalogue is incomplete.')
+        if package.get('license') != 'MIT' or package.get('licenseText') != license_text:
+            raise ValueError('The bundled mod catalogue must preserve its license notice.')
 
 
 def verify_image(image):

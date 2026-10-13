@@ -1,9 +1,17 @@
-# Local trust boundary
+# Security reporting
+
+Report vulnerabilities privately through [GitHub security advisories](https://github.com/lansbe/palworld-mods/security/advisories/new).
+Include the affected version, impact and a minimal reproduction using synthetic data.
+Do not publish exploit details, credentials, saves or unredacted logs in a public issue.
+There is no guaranteed response time. Security fixes target the latest stable release;
+older releases may require upgrading.
+
+## Local trust boundary
 
 The launcher accepts only same-user Unix-socket connections in a private data
 directory. Any process running as that user can request supported game actions.
-There is no remote listener, telemetry or AI provider key. Optional GitHub update
-credentials live only in the login Keychain. They are sent only to the fixed
+There is no remote listener, telemetry or AI provider key. Public updates require no credentials. Optional GitHub update
+credentials remain in the login Keychain or the selected GitHub CLI provider. They are sent only to the fixed
 GitHub API repository and stripped from asset redirects.
 
 Only bundled catalogue packages can be installed by the production host. Package
@@ -14,7 +22,7 @@ distributed as production packages.
 MCP clients should obtain the user's authorization for the world and actions to
 perform. Timeouts do not imply that an action was not executed. Inspect state
 before retrying. Keep saves, logs, personal fixtures, tokens and generated binary
-outputs out of source control. Report issues privately through repository access.
+outputs out of source control. Use the private reporting channel above.
 
 Updates require an Ed25519-signed manifest pinned to the bundled public key,
 plus an exact SHA-256 archive digest. Bounds, bundle identity, architecture,

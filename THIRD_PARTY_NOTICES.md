@@ -1,6 +1,8 @@
 # Third-party notices
 
-The original runtime, launcher and menu have no external mod-loader dependency.
+The original runtime, launcher and menu are MIT-licensed; see LICENSE. The bundled
+Minimap and Autonomy code uses the same license and preserves its full notice in
+each catalogue package. There is no external mod-loader dependency.
 The build downloads Lua 5.4.8 from lua.org and verifies its SHA-256. The Lua source
 and build cache are not stored in this repository.
 

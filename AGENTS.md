@@ -1,7 +1,8 @@
 # Project guidelines
 
 Use English for identifiers, code comments and documentation. Store translated user-facing text in locale catalogues.
-Use master as the primary branch. Keep repositories private.
+Use master as the primary branch. These repositories are public and MIT-licensed.
+Follow CONTRIBUTING.md. Preserve license notices and keep personal data out of all public artifacts.
 Keep handwritten source files at or below 300 lines; split by responsibility.
 Never commit user paths, saves, logs, machine state, credentials, or private test fixtures.
 Use repository-relative paths and runtime user-directory discovery.

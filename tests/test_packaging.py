@@ -37,10 +37,13 @@ class PackagingTests(unittest.TestCase):
             folder = root / 'mod'
             (folder / 'src/nested').mkdir(parents=True)
             (folder / 'manifest.json').write_text('{"id":"minimap","api":1}')
+            license_text = 'MIT License\n\nCopyright (c) Example contributors\n'
+            (folder / 'LICENSE').write_text(license_text)
             (folder / 'src/nested/module.lua').write_text('return {name = "example"}\n')
             package_mod(folder, root)
             content = (root / 'minimap.json').read_bytes()
             self.assertEqual(json.loads(content)['files'], {'nested.module': 'return {name = "example"}\n'})
+            self.assertEqual(json.loads(content)['licenseText'], license_text)
             self.assertEqual((root / 'minimap.sha256').read_text().strip(), hashlib.sha256(content).hexdigest())
 
     def test_image_checksum_is_portable_and_has_no_absolute_path(self):

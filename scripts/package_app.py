@@ -15,6 +15,7 @@ from distribution import APP_NAME, APP_FILENAME, BUNDLE_ID, VERSION, sign, signi
 
 def package_mod(folder, output):
     manifest = json.loads((folder / 'manifest.json').read_text())
+    manifest['licenseText'] = (folder / 'LICENSE').read_text()
     if (folder / 'locales').is_dir():
         manifest['translations'] = load_catalogues(folder)
     manifest['files'] = {

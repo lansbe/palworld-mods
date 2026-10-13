@@ -10,18 +10,22 @@ final class UpdateDownload: NSObject, URLSessionDataDelegate, @unchecked Sendabl
     private var cancelled = false
     init(limit: Int) { self.limit = limit }
 
-    func fetch(_ url: URL, token: String, binary: Bool = false) async throws -> Data {
+    static func request(_ url: URL, token: String?, binary: Bool) -> URLRequest {
+        var request = URLRequest(url: url)
+        if let token = token { request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization") }
+        request.setValue(binary ? "application/octet-stream" : "application/vnd.github+json", forHTTPHeaderField: "Accept")
+        request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
+        request.setValue("PalworldMods-Updater", forHTTPHeaderField: "User-Agent")
+        return request
+    }
+    func fetch(_ url: URL, token: String?, binary: Bool = false) async throws -> Data {
         try Task.checkCancellation()
         return try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { completion in
                 lock.lock(); defer { lock.unlock() }
                 if cancelled { completion.resume(throwing: CancellationError()); return }
                 continuation = completion
-                var request = URLRequest(url: url)
-                request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
-                request.setValue(binary ? "application/octet-stream" : "application/vnd.github+json", forHTTPHeaderField: "Accept")
-                request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
-                request.setValue("PalworldMods-Updater", forHTTPHeaderField: "User-Agent")
+                let request = Self.request(url, token: token, binary: binary)
                 let config = URLSessionConfiguration.ephemeral
                 config.timeoutIntervalForRequest = 30; config.timeoutIntervalForResource = 180
                 config.urlCache = nil; config.httpCookieStorage = nil; config.urlCredentialStorage = nil
@@ -83,10 +87,14 @@ struct GitHubUpdateSource {
         let signature: Data
         let asset: Asset
     }
-    let token: String
+    let token: String?
     private func fetch(_ path: String, limit: Int, binary: Bool = false) async throws -> Data {
         let url = URL(string: "https://api.github.com/repos/" + Self.repository + path)!
-        return try await UpdateDownload(limit: limit).fetch(url, token: token, binary: binary)
+        do { return try await UpdateDownload(limit: limit).fetch(url, token: token, binary: binary) }
+        catch UpdateFailure.authentication where token != nil {
+            // A stale optional credential must not prevent access to public releases.
+            return try await UpdateDownload(limit: limit).fetch(url, token: nil, binary: binary)
+        }
     }
     func latest(after current: String) async throws -> Candidate? {
         guard let installed = ReleaseVersion(current) else { throw UpdateFailure.invalidPackage }

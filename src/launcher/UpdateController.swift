@@ -89,7 +89,7 @@ final class UpdateController: @unchecked Sendable {
             var preference = store.preferences; preference.credentialSource = nil
             try store.save(preference)
             credentialGeneration += 1; credential = nil; connecting = false
-            UpdateCredentials.remove(); connected = false; cancel(); changed("authentication")
+            UpdateCredentials.remove(); connected = false; cancel(); changed("idle")
         default: throw UpdateFailure.invalidPackage
         }
         changed(); return snapshot
@@ -99,17 +99,15 @@ final class UpdateController: @unchecked Sendable {
         if let staged = staged { try? FileManager.default.removeItem(at: staged) }
         staged = nil; changed("idle")
     }
-    private func source() -> GitHubUpdateSource? {
-        guard let token = credential else { connected = false; changed("authentication"); return nil }
-        connected = true; return GitHubUpdateSource(token: token)
-    }
+    private func source() -> GitHubUpdateSource { GitHubUpdateSource(token: credential) }
     private func failed(_ error: Error) {
         note?("update operation failed: \(String(describing: type(of: error))) code=\((error as NSError).code)")
         if (error as? UpdateFailure) == .authentication { connected = false }
         changed((error as? UpdateFailure) == .authentication ? "authentication" : "failed")
     }
     private func check(automatic: Bool) {
-        guard task == nil, staged == nil, let source = source() else { return }
+        guard task == nil, staged == nil else { return }
+        let source = source()
         generation += 1; let token = generation
         changed("checking")
         task = Task(priority: .utility) { [weak self] in
@@ -133,7 +131,7 @@ final class UpdateController: @unchecked Sendable {
         }
     }
     private func download(_ value: GitHubUpdateSource.Candidate) {
-        guard let source = source() else { return }
+        let source = source()
         generation += 1; let token = generation
         changed("downloading")
         task = Task(priority: .utility) { [weak self] in

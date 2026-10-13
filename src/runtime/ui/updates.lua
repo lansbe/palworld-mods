@@ -29,13 +29,13 @@ function Updates.render(instance,action,back)
     if state.status~='idle' then
         Native.heading(instance.owner,instance.list,I18n.core(allowed[state.status],{version=state.version}))
     end
-    if not state.connected then
+    if not state.busy and not state.ready then
+        action(instance,I18n.core('updates.check'),function() request('check') end)
+        if state.available then action(instance,I18n.core('updates.install'),function() request('install') end) end
+    end
+    if not state.connected and state.status=='authentication' then
         action(instance,I18n.core('updates.connect'),function() request('connect') end)
-    else
-        if not state.busy and not state.ready then
-            action(instance,I18n.core('updates.check'),function() request('check') end)
-            if state.available then action(instance,I18n.core('updates.install'),function() request('install') end) end
-        end
+    elseif state.connected then
         action(instance,I18n.core('updates.disconnect'),function() request('disconnect') end)
     end
 end

@@ -13,6 +13,9 @@ for value in ["v1.0.0", "1.0", "1.0.0-beta", "01.0.0", "1.-1.0", "1.0.０", "1.0
     assert(ReleaseVersion(value) == nil)
 }
 let key = Curve25519.Signing.PrivateKey()
+let endpoint = URL(string: "https://api.github.com/repos/lansbe/palworld-mods/releases")!
+assert(UpdateDownload.request(endpoint, token: nil, binary: false).value(forHTTPHeaderField: "Authorization") == nil)
+assert(UpdateDownload.request(endpoint, token: "test-token", binary: true).value(forHTTPHeaderField: "Authorization") == "Bearer test-token")
 let bytes = Data("signed update test".utf8)
 let digest = SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
 var document: [String: Any] = ["schema": 1, "version": "1.2.3", "bundleIdentifier": "org.palworldmods.launcher",

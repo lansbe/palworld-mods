@@ -7,7 +7,7 @@ external mod manager, Python service or package manager to run while playing.
 ## Install
 
 1. Install the supported Mac App Store edition of Palworld.
-2. Open the **Palworld Mods.dmg** disk image from the private release.
+2. Open the **Palworld Mods.dmg** disk image from the [latest release](https://github.com/lansbe/palworld-mods/releases/latest).
 3. Drag **Palworld Mods** into **Applications**, then eject the disk image.
 4. Close Palworld once, then open **Palworld Mods** from Applications.
 5. In the game, open **Options → Mods**.
@@ -21,9 +21,10 @@ downloads. **Palworld Mods.app** is a separate app; it does not replace the
 licensed **Palworld.app**. Settings carry over from previous launcher versions.
 **Options → Mods → Updates** controls app updates. Automatic updates are enabled
 by default and can be disabled at any time; your choice survives relaunches.
-Connect GitHub once for access to the private release repository. An existing
-GitHub CLI login can be reused, or enter a read-only repository token in the
-secure macOS dialog. Credentials stay in Keychain, never in settings or logs.
+Public releases require no GitHub account or token. If GitHub rate-limits an
+anonymous check, the menu offers an optional connection using an existing GitHub
+CLI login or a read-only token stored in Keychain. No credential is stored in settings
+or logs.
 
 The app checks in the background at launch when due, then at most every six
 hours. Signed updates download without interrupting play and install after a
@@ -100,7 +101,7 @@ python3 scripts/test_updates.py
 python3 -m venv .venv
 .venv/bin/python -m pip install --require-hashes -r scripts/requirements-packaging.txt
 .venv/bin/python scripts/package_dmg.py
-.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.4.1-macos-arm64.dmg
+.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.4.2-macos-arm64.dmg
 ```
 
 The build downloads checksum-pinned Lua sources. `dist/Palworld Mods.app` contains
@@ -145,3 +146,10 @@ removed after verifying the new app; keep the original Mac App Store game.
 
 See [architecture](docs/architecture.md), [validation](docs/validation.md),
 [security](SECURITY.md) and [third-party notices](THIRD_PARTY_NOTICES.md).
+
+## Contributing and license
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks and pull-request guidelines.
+The original code is available under the [MIT license](LICENSE). Third-party
+components keep their own licenses. This is an independent community project,
+not an official Pocketpair product; Palworld and its game assets are not included.
