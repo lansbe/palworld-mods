@@ -180,3 +180,11 @@ ad hoc code signing plus a separate pinned Ed25519 release signature.
   available after rate-limit/authentication failures. Signed-package trust is unchanged.
 - Catalogue packaging preserves each mod's full MIT license. The MCP archive
   includes its license and uses one VERSION value for package and protocol metadata.
+- GitHub reports all four repositories as public, MIT-licensed and based on master.
+  Contribution guides were fetched without authentication and private vulnerability
+  reporting is enabled for each repository. Release-commit CI passed in all four.
+- The opt-in public-update integration downloaded 0.4.2 with no credential, verified
+  its signed manifest/archive/app and confirmed that an invalid optional token falls
+  back to anonymous access. The installed 0.4.2 native menu reported up to date
+  after disconnecting GitHub; automatic updates stayed enabled and mod settings
+  remained byte-for-byte identical. The resulting menu was inspected in game.

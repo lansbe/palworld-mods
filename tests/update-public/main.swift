@@ -7,6 +7,8 @@ Task {
         defer { try? FileManager.default.removeItem(at: root) }
         let source = GitHubUpdateSource(token: nil)
         guard let candidate = try await source.latest(after: "0.0.0") else { fatalError("No signed public release") }
+        let fallback = try await GitHubUpdateSource(token: "invalid-integration-test-token").latest(after: "999999.0.0")
+        guard fallback == nil else { fatalError("Unexpected release beyond the integration ceiling") }
         let data = try await source.download(candidate.asset, limit: candidate.manifest.size)
         let store = try UpdateStore(root: root)
         let stage = try store.stage(candidate, data: data)
