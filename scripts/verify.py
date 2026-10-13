@@ -18,6 +18,9 @@ for name in sorted(set(files) - {''}):
     if path.suffix in {'.sav', '.ips', '.crash', '.log', '.dylib', '.zip'} or name.startswith(('local/', 'build/', 'dist/', '.cache/')):
         problems.append(f'{name}: private state or generated output is tracked')
         continue
+    # Reviewed documentation captures are the only permitted binary source files.
+    if name.startswith('docs/screenshots/') and path.suffix == '.jpg':
+        continue
     try:
         content = path.read_text()
     except UnicodeDecodeError:
@@ -42,3 +45,4 @@ if problems:
 print(f'PASS: source boundaries, privacy patterns, file sizes and syntax ({len(set(files)) - 1} files)')
 
 subprocess.run(['python3', str(ROOT / 'scripts/check_localization.py')], check=True)
+subprocess.run(['python3', str(ROOT / 'scripts/check_documentation.py')], check=True)
