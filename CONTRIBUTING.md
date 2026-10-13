@@ -61,6 +61,12 @@ world transitions and normal shutdown. For performance changes, compare the same
 scenario and settings before/after and distinguish CPU timings from GPU measurements.
 Describe unavailable checks honestly; compilation or mocks do not prove gameplay.
 
+The development-only probe can run `tests/native_settings.lua` with Options open.
+For Autonomy, open Options > Mods > Autonomy with Running off, then run
+`tests/native_autonomy_settings.lua`. It checks the rendered controls and restores
+the saved configuration even when an assertion fails. Use a temporary world;
+never enable arbitrary evaluation in a distributed launcher.
+
 Bug reports should include the app/mod version, macOS version, game build, minimal
 steps and expected/actual behavior. Review diagnostic excerpts and screenshots for
 personal data before attaching them. Do not upload complete saves or raw crash dumps.

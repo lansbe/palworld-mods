@@ -32,5 +32,10 @@ assert(#selector.Selections==0,'Empty array assignment must clear existing stora
 row:SetSlider(0,0,90,10,true)
 row:AddValue()
 assert(row.WBP_OptionSettings_ListContentSlider.CurrentValue==10,'Native slider increment must apply its step')
+local input=require('ui.text_field').create(owner,row,{label='Targets',hint='Lamball=5'},'Cattiva=3')
+assert(input:GetText()=='Cattiva=3','Text fields must construct without world-settings templates')
+input:SetText('Lamball=5; Cattiva=3')
+assert(input:GetText()=='Lamball=5; Cattiva=3','Native text must round-trip')
+input:RemoveFromParent()
 row:RemoveFromParent()
-return {passed=true,checks={'native booleans','native clicks','string arrays','array rollback','slider increments'}}
+return {passed=true,checks={'native booleans','native clicks','string arrays','array rollback','slider increments','native text'}}

@@ -3,6 +3,32 @@
 Verified locally on Apple silicon with the supported App Store executable.
 This record describes observed results, not guarantees for every game session.
 
+## Native Autonomy settings (0.4.3)
+
+- A cold Options session reproduced the missing world-settings text template in
+  0.4.2. The replacement creates built-in UMG EditableTextBox controls directly,
+  so all 18 rows render without opening world creation first.
+- Engine integration exercised capture/material text, all three capture modes,
+  numeric limits and behavioral toggles through the rendered settings controls.
+  Invalid targets preserved saved goals, displayed an inline error and accepted
+  a correction. Unit tests cover focused drafts, closing-menu commits, idle
+  polling and rejected selection rollback.
+- The packaged production app opened the complete panel at the title screen and
+  inside a local world. Edits made through native EditableTextBox controls survived
+  reopening the panel and relaunching the game. All original mod settings were
+  restored after testing. The production interface rejected the development probe.
+- English, French, German, Russian and Japanese panels were inspected visually,
+  including both text inputs and the scrolled session limit. All 17 catalogues
+  passed completeness checks. The README capture comes from the packaged app.
+- The application bundle, disk image, signatures, signed update and recoverable
+  disposable installation passed verification. Existing update and mod tests pass.
+
+The remote macOS keyboard/mouse driver did not reliably enter text into Palworld;
+text editing above was exercised through the actual UMG control API, not hardware
+typing. These checks do not validate gamepad text entry, full autonomous gameplay
+or multiplayer capture/gathering sessions. A development-only reflection probe
+crashed when given an object instead of a class; that probe is absent from production.
+
 ## Automated checks
 
 - Strict native C++/Objective-C and Swift compilation.

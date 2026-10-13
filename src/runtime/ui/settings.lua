@@ -1,6 +1,16 @@
 local Native=require('ui.native')
 local I18n=require('i18n.service')
+local TextField=require('ui.text_field')
 local Settings={}
+local function restore(control)
+    local row,field,current=control.row,control.field,control.current
+    if field.type=='boolean' then row:SetSwitcher(current)
+    elseif field.options then
+        for index,option in ipairs(field.options) do
+            if option==current then row:SetSelecter_String(field.optionLabels or field.options,index-1);break end
+        end
+    else row:SetSlider(current,field.min,field.max,field.step,true) end
+end
 local function value(control)
     local field,row=control.field,control.row
     if field.type=='boolean' then return row.WBP_OptionSettings_ListContentSwitch:IsOn() end
@@ -23,22 +33,7 @@ function Settings.field(instance,field,current,change)
         for i,option in ipairs(field.options) do if option==current then selected=i-1 end end
         row:SetSelecter_String(field.optionLabels or field.options,selected)
     elseif field.type=='text' then
-        row:SetClickableButton()
-        local input=Native.make(instance.owner,'EditableTextBox')
-        local template=Engine.find('/Game/Pal/Blueprint/UI/UserInterface/Title/'..
-            'WBP_Title_WorldSettings_ListContent.WBP_Title_WorldSettings_ListContent_C.WidgetTree.EditableTextBox_46')
-        assert(Engine.valid(template),'Native text field is unavailable')
-        input.WidgetStyle=template.WidgetStyle
-        input.WidgetStyle.TextStyle.Font=row.BP_PalTextBlock_Name.Font
-        local area=row.WBP_OptionSettings_ClickableButton
-        local panel=area:GetParent()
-        local slot=panel:AddChildToCanvas(input)
-        slot:SetLayout(area.Slot.LayoutData)
-        input:SetText(tostring(current or ''))
-        input:SetHintText(field.hint or field.label)
-        area:SetVisibility(1)
-        row.Button:SetVisibility(1)
-        control.input=input
+        control.input=TextField.create(instance.owner,row,field,current)
     else
         row:SetSlider(current,field.min,field.max,field.step,true)
         row.WBP_OptionSettings_ListContentSlider.Slider:SetStepSize(field.step/(field.max-field.min))
@@ -60,8 +55,20 @@ function Settings.poll(instance,flush)
                 end
                 if updated~=control.current then
                     local ok=pcall(control.change,updated)
-                    if ok then control.current=updated
-                    else require('ui.menu').feedback(I18n.core('error.invalid_value',{field=field.label})) end
+                    if ok then
+                        control.current=updated
+                        if control.input then control.input:ClearError() end
+                    else
+                        local message=I18n.core('error.invalid_value',{field=field.label})
+                        if control.input then control.input:SetError(message)
+                        else
+                            restore(control)
+                            raw=control.current
+                            require('ui.menu').feedback(message)
+                        end
+                    end
+                elseif control.input then
+                    control.input:ClearError()
                 end
                 control.raw=raw
             end
