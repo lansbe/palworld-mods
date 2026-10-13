@@ -1,0 +1,19 @@
+[
+  {"id":"en","name":"English"},
+  {"id":"fr","name":"Français"},
+  {"id":"de","name":"Deutsch"},
+  {"id":"es","name":"Español (España)"},
+  {"id":"es-419","name":"Español (Latinoamérica)"},
+  {"id":"it","name":"Italiano"},
+  {"id":"pt-BR","name":"Português (Brasil)"},
+  {"id":"pl","name":"Polski"},
+  {"id":"ru","name":"Русский"},
+  {"id":"tr","name":"Türkçe"},
+  {"id":"id","name":"Bahasa Indonesia"},
+  {"id":"vi","name":"Tiếng Việt"},
+  {"id":"th","name":"ไทย"},
+  {"id":"ja","name":"日本語"},
+  {"id":"ko","name":"한국어"},
+  {"id":"zh-Hans","name":"简体中文"},
+  {"id":"zh-Hant","name":"繁體中文"}
+]

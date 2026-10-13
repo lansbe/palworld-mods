@@ -7,6 +7,7 @@ import pathlib
 import subprocess
 import tarfile
 import urllib.request
+from localization import embedded_module
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LUA_VERSION = "5.4.8"
@@ -56,7 +57,7 @@ def build(development=False):
     files = sorted(p for p in source.glob("*.c") if p.name not in {"lua.c", "luac.c"})
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
         compiled = list(pool.map(compile_one, files))
-    chunks = []
+    chunks = ['{"i18n.catalog", R"PAL_LUA(' + embedded_module() + ')PAL_LUA"}']
     for path in sorted((ROOT / "src/runtime").rglob("*.lua")):
         name = path.relative_to(ROOT / "src/runtime").with_suffix("").as_posix().replace("/", ".")
         content = path.read_text()

@@ -2,6 +2,7 @@ local Native=require('ui.native')
 local Settings=require('ui.settings')
 local Tree=require('ui.tree')
 local Registry=require('core.registry')
+local I18n=require('i18n.service')
 local Menu={instances={},model={},subscriptions={}}
 local render
 local function hide(instance,widget)
@@ -33,6 +34,7 @@ local function begin(instance,page,title)
     close(instance,false,true)
     local owner=instance.owner
     owner.CanvasPanel_Settings:SetVisibility(0)
+    owner.CanvasPanel_Settings:SetRenderOpacity(1)
     instance.hidden={}
     local panel,list=Native.scroll(owner)
     instance.panel,instance.list,instance.page=panel,list,page
@@ -49,15 +51,19 @@ local function action(instance,label,callback,muted,verb)
     return Native.action(instance.owner,instance.list,label,callback,instance.callbacks,muted,verb)
 end
 render=function(instance,page)
-    begin(instance,page or 'mods',page=='catalog' and 'Manage mods' or 'Mods')
-    if page=='catalog' then action(instance,'Back',function() render(instance) end)
-    else action(instance,'Manage mods',function() render(instance,'catalog') end) end
+    begin(instance,page or 'mods',I18n.core(page=='catalog' and 'menu.manage' or 'menu.mods'))
+    if page=='catalog' then action(instance,I18n.core('common.back'),function() render(instance) end)
+    else
+        action(instance,I18n.core('menu.manage'),function() render(instance,'catalog') end)
+        local ids,labels=I18n.choices()
+        Settings.field(instance,{key='language',label=I18n.core('language.title'),options=ids,optionLabels=labels},I18n.mode,Menu.model.language)
+    end
     for _,mod in ipairs(Menu.model.list() or {}) do
         action(instance,mod.name,function()
             if not mod.installed then Menu.model.install(mod.id)
             elseif page=='catalog' then Menu.model.remove(mod.id)
             else Menu.model.settings(instance,mod.id) end
-        end,not mod.installed,page=='catalog' and (mod.installed and 'Uninstall' or 'Install') or nil)
+        end,not mod.installed,page=='catalog' and I18n.core(mod.installed and 'common.uninstall' or 'common.install') or nil)
     end
 end
 local function attach(owner)
@@ -67,7 +73,7 @@ local function attach(owner)
     if owner.class.name=='WBP_MenuESC_C' then
         local template=Tree.find(owner,'WBP_MenuESC_Button_Option')
         if not template then return end
-        instance.entry,instance.button=Native.sidebar(owner,template,'Mods')
+        instance.entry,instance.button,instance.caption=Native.sidebar(owner,template,I18n.core('menu.mods'))
         instance.open=function()
             Menu.pending=Engine.clock()+5
             assert(Tree.find(template,'WBP_PalInvisibleButton')):HandleButtonClicked()
@@ -80,7 +86,7 @@ local function attach(owner)
             local input=Engine.valid(entry) and Tree.find(entry,'WBP_PalInvisibleButton')
             if input then instance.nativeButtons[input.key]=true end
         end
-        instance.entry,instance.button=Native.sidebar(owner,template,'Mods')
+        instance.entry,instance.button,instance.caption=Native.sidebar(owner,template,I18n.core('menu.mods'))
         instance.open=function() render(instance) end
     end
     Menu.instances[owner.key]=instance
@@ -94,9 +100,12 @@ function Menu.start(model)
 end
 function Menu.refresh()
     for _,instance in pairs(Menu.instances) do
+        if Engine.valid(instance.entry) then Native.label(instance.entry,I18n.core('menu.mods')) end
         if Engine.valid(instance.owner) and instance.panel then
+            local offset=instance.list:GetScrollOffset()
             if instance.modId and Menu.model.active(instance.modId) then Menu.model.settings(instance,instance.modId)
             else render(instance,instance.page=='catalog' and 'catalog' or nil) end
+            instance.list:SetScrollOffset(offset)
         end
     end
 end
@@ -110,14 +119,14 @@ function Menu.stop()
 end
 function Menu.settings(instance,id,extensions)
     local item=assert(extensions.active[id],'Mod is no longer installed')
-    begin(instance,'settings',item.name)
+    begin(instance,'settings',I18n.t(id,'name'))
     instance.modId=id
-    action(instance,'Back',function() render(instance) end)
-    Settings.field(instance,{key='enabled',label='Enabled',type='boolean'},item.enabled,function(value)
+    action(instance,I18n.core('common.back'),function() render(instance) end)
+    Settings.field(instance,{key='enabled',label=I18n.core('common.enabled'),type='boolean'},item.enabled,function(value)
         extensions.enable(id,value)
     end)
     for _,field in ipairs(extensions.call(id,'settings')) do
-        Settings.field(instance,field,item.settings[field.key],function(value)
+        Settings.field(instance,I18n.field(id,field),item.settings[field.key],function(value)
             extensions.configure(id,{[field.key]=value})
         end)
     end
@@ -133,11 +142,22 @@ function Menu.feedback(message)
 end
 function Menu.tick()
     local now=Engine.clock()
+    if Menu.languageRevision~=I18n.revision then
+        Menu.languageRevision=I18n.revision
+        for _,instance in pairs(Menu.instances) do if instance.panel then Settings.poll(instance,true) end end
+        Menu.refresh()
+    end
     if Menu.pending and now>Menu.pending then Menu.pending=nil end
     for key,instance in pairs(Menu.instances) do
         if not Engine.valid(instance.owner) then Menu.instances[key]=nil
         else
             local visible=instance.owner:IsActivated() and Tree.visible(instance.owner)
+            if visible and now>=(instance.nextLabel or 0) then
+                instance.nextLabel=now+1
+                -- Blueprint construction may replace our initial caption after attachment.
+                local caption=instance.caption
+                if Engine.valid(caption) and caption:GetText()~=I18n.core('menu.mods') then caption:SetText(I18n.core('menu.mods')) end
+            end
             if instance.panel and not visible then close(instance) end
             if visible and instance.owner.class.name=='WBP_OptionSettings_C' and Menu.pending then
                 Menu.pending=nil;render(instance)

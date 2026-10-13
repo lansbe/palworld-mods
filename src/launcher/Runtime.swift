@@ -40,7 +40,7 @@ final class Runtime {
             guard let self = self else { return }
             self.output.fileHandleForReading.readabilityHandler = nil
             self.pendingLock.lock(); let waiting = self.pending; self.pending.removeAll(); self.pendingLock.unlock()
-            for reply in waiting.values { reply(["ok": false, "result": "Palworld has exited."]) }
+            for reply in waiting.values { reply(["ok": false, "result": L10n.text("error.exited")]) }
             self.note("exit status=\(process.terminationStatus) reason=\(process.terminationReason.rawValue)")
             if process.terminationStatus != 0 { CrashDiagnostics.collect(paths: self.paths, since: self.launchedAt) }
             self.onExit?(process.terminationStatus)
@@ -51,7 +51,7 @@ final class Runtime {
     }
 
     func call(_ request: [String: Any], completion: @escaping ([String: Any]) -> Void) {
-        guard process.isRunning else { completion(["ok": false, "result": "Palworld is not running."]); return }
+        guard process.isRunning else { completion(["ok": false, "result": L10n.text("error.not_running")]); return }
         var payload = request
         let id = UUID().uuidString
         payload["id"] = id
@@ -60,7 +60,7 @@ final class Runtime {
             var data = try jsonData(payload); data.append(10)
             pendingLock.lock()
             guard pending.count < 32 else {
-                pendingLock.unlock(); completion(["ok": false, "result": "The command queue is full."]); return
+                pendingLock.unlock(); completion(["ok": false, "result": L10n.text("error.queue")]); return
             }
             pending[id] = completion; pendingLock.unlock()
             writes.lock(); defer { writes.unlock() }
@@ -68,7 +68,7 @@ final class Runtime {
             DispatchQueue.global().asyncAfter(deadline: .now() + 15) { [weak self] in
                 guard let self = self else { return }
                 self.pendingLock.lock(); let reply = self.pending.removeValue(forKey: id); self.pendingLock.unlock()
-                reply?(["ok": false, "result": "The game did not answer within 15 seconds."])
+                reply?(["ok": false, "result": L10n.text("error.timeout")])
             }
         } catch {
             pendingLock.lock(); pending.removeValue(forKey: id); pendingLock.unlock()

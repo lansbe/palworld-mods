@@ -1,5 +1,6 @@
 package.path='src/runtime/?.lua;'..package.path
 package.loaded['ui.native']={}
+package.loaded['i18n.service']={core=function(key)return key end}
 package.loaded['ui.menu']={feedback=function()end}
 Engine={valid=function(value)return value~=nil end}
 local Settings=require('ui.settings')

@@ -60,8 +60,6 @@ func drawBackground() {
     NSRect(x: 0, y: 0, width: 680, height: 420).fill()
     text("Palworld Mods", y: 338, size: 28, weight: .semibold,
         color: NSColor(srgbRed: 0.10, green: 0.15, blue: 0.22, alpha: 1))
-    text("Drag to Applications to install", y: 64, size: 15, weight: .regular,
-        color: NSColor(srgbRed: 0.38, green: 0.43, blue: 0.50, alpha: 1))
     let arrow = NSBezierPath()
     arrow.move(to: NSPoint(x: 307, y: 212))
     arrow.line(to: NSPoint(x: 371, y: 212))

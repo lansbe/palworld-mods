@@ -9,7 +9,7 @@ local function labels(widget)
             local text=child:GetText()
             if type(text)=='string' and text~='' then result[#result+1]=text end
         end
-    end,80)
+    end,80,true)
     return result
 end
 function Control.list()
@@ -31,7 +31,7 @@ function Control.list()
                     screen.elements[#screen.elements+1]=entry
                     targets[widget.key]=widget
                 end
-            end, 1200)
+            end, 1200, true)
             result[#result+1]=screen
         end
     end

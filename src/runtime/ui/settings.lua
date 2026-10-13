@@ -1,4 +1,5 @@
 local Native=require('ui.native')
+local I18n=require('i18n.service')
 local Settings={}
 local function value(control)
     local field,row=control.field,control.row
@@ -9,11 +10,18 @@ end
 function Settings.field(instance,field,current,change)
     local row=Native.row(instance.owner,instance.list,field.label)
     local control={row=row,field=field,current=current,raw=current,change=change}
-    if field.type=='boolean' then row:SetSwitcher(current)
+    if field.type=='boolean' then
+        row:SetSwitcher(current)
+        local switch=row.WBP_OptionSettings_ListContentSwitch
+        for _,value in ipairs({'OFF','ON'}) do
+            local label=I18n.core(value=='ON' and 'common.on' or 'common.off')
+            Native.label(switch['CanvasPanel'..value],label)
+            Native.label(switch['CanvasPanel_'..value..'Hover'],label)
+        end
     elseif field.options then
         local selected=0
         for i,option in ipairs(field.options) do if option==current then selected=i-1 end end
-        row:SetSelecter_String(field.options,selected)
+        row:SetSelecter_String(field.optionLabels or field.options,selected)
     elseif field.type=='text' then
         row:SetClickableButton()
         local input=Native.make(instance.owner,'EditableTextBox')
@@ -27,7 +35,7 @@ function Settings.field(instance,field,current,change)
         local slot=panel:AddChildToCanvas(input)
         slot:SetLayout(area.Slot.LayoutData)
         input:SetText(tostring(current or ''))
-        input:SetHintText(field.label)
+        input:SetHintText(field.hint or field.label)
         area:SetVisibility(1)
         row.Button:SetVisibility(1)
         control.input=input
@@ -53,7 +61,7 @@ function Settings.poll(instance,flush)
                 if updated~=control.current then
                     local ok=pcall(control.change,updated)
                     if ok then control.current=updated
-                    else require('ui.menu').feedback('Invalid value: '..field.label) end
+                    else require('ui.menu').feedback(I18n.core('error.invalid_value',{field=field.label})) end
                 end
                 control.raw=raw
             end

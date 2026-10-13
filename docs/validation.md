@@ -75,6 +75,33 @@ commit. Real native regression checks are in `tests/native_settings.lua` and nee
 the supported game, an open Options screen and a development runtime. A physical
 controller navigation pass and all mouse gestures have not been verified.
 
+## Localization (0.3.0)
+
+- All four repositories validate all 17 locale inventories, key parity, nonempty
+  text, duplicate keys and named placeholders. Negative packaging tests reject
+  missing languages, missing keys, empty text and inconsistent placeholders.
+- Runtime tests cover actual-language detection, manual selection, automatic
+  restoration, regional normalization, fallback and immutable raw setting values.
+- The installed app detected the game's French language. All 17 manual choices
+  updated live mod names. Japanese selection survived a normal quit and relaunch.
+- The real native language arrows changed the preference both at the title and
+  in a local world. Returning to Automatic restored French without a restart.
+- Native menu layouts were inspected in French, Japanese, Thai, Russian and
+  German. The translated ON/OFF controls still disabled and enabled Minimap.
+  Existing saved mod settings were compared before/after and remained identical.
+- A running MCP stdio session refreshed all 26 descriptions between French,
+  Japanese and Automatic on subsequent tool-list requests. Atomic preference
+  replacement is detected without restarting the MCP process.
+- Controller tests verify language changes render existing status records while
+  retaining target/count data and detailed failure diagnostics. Gameplay policy
+  and target selection are unchanged by this presentation update.
+- The native menu's initial caption is repaired after Blueprint construction,
+  and opening Mods explicitly shows its content panel. Bounded UI inspection
+  skips hidden branches so language arrows remain discoverable.
+
+These checks do not constitute native-speaker proofreading of every translation
+or a new complete autonomous gameplay/session performance test.
+
 ## Runtime limits
 
 A startup hang occurred when requesting exclusive fullscreen before the engine

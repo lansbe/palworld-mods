@@ -35,6 +35,23 @@ approval in **System Settings → Privacy & Security → Open Anyway**, after a 
 attempt. Only approve a build you trust. Developer ID signing and notarization
 are supported by the release builder; see [distribution](docs/distribution.md).
 
+## Language
+
+**Options → Mods → Language** defaults to **Automatic — game language**. All 17
+Palworld locales are included, including both Spanish and Chinese variants.
+Select a language to override it immediately, or choose Automatic to follow the
+actual game language again. The choice survives relaunches and app updates.
+It changes our menu, bundled mods, installer messages and MCP descriptions;
+it does not change Palworld's own interface language.
+
+The shared preference is stored locally in `preferences.json`. Before the first
+game launch, the installer uses the Mac language; afterwards it uses the last
+detected game language unless an override is selected. Protocol names, parsed
+game IDs and technical diagnostics retain stable English identifiers.
+
+Every feature must include all translations. See [localization](docs/localization.md)
+for the catalogue format, API and mandatory validation rules.
+
 ## Compatibility
 
 - Apple silicon, macOS 14 or later.
@@ -64,10 +81,12 @@ python3 scripts/verify.py
 python3 -m unittest discover -s tests -p 'test_*.py'
 lua tests/extensions.lua
 lua tests/settings.lua
+lua tests/localization.lua
+lua tests/tree.lua
 python3 -m venv .venv
 .venv/bin/python -m pip install --require-hashes -r scripts/requirements-packaging.txt
 .venv/bin/python scripts/package_dmg.py
-.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.2.1-macos-arm64.dmg
+.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.3.0-macos-arm64.dmg
 ```
 
 The build downloads checksum-pinned Lua sources. `dist/Palworld Mods.app` contains

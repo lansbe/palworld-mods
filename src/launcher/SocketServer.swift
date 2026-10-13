@@ -12,9 +12,9 @@ final class SocketServer {
     }
 
     func start() throws {
-        guard path.utf8.count < 104 else { throw HostError.message("The local socket path is too long.") }
+        guard path.utf8.count < 104 else { throw HostError.message(L10n.text("error.socket_path")) }
         descriptor = socket(AF_UNIX, SOCK_STREAM, 0)
-        guard descriptor >= 0 else { throw HostError.message("Cannot create the local control socket.") }
+        guard descriptor >= 0 else { throw HostError.message(L10n.text("error.socket_create")) }
         var address = sockaddr_un()
         address.sun_family = sa_family_t(AF_UNIX)
         address.sun_len = UInt8(MemoryLayout<sockaddr_un>.size)
@@ -30,7 +30,7 @@ final class SocketServer {
         }
         guard bound == 0, chmod(path, 0o600) == 0, listen(descriptor, 8) == 0 else {
             close(descriptor); descriptor = -1
-            throw HostError.message("Cannot open the local control socket.")
+            throw HostError.message(L10n.text("error.socket_open"))
         }
         DispatchQueue.global().async { [weak self] in self?.acceptLoop() }
     }

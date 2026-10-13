@@ -1,10 +1,10 @@
 local Tree = {}
-function Tree.walk(root, visit, maximum)
+function Tree.walk(root, visit, maximum, visibleOnly)
     local queue, seen, cursor = {root}, {}, 1
     while queue[cursor] and cursor <= (maximum or 800) do
         local widget = queue[cursor]
         cursor = cursor + 1
-        if Engine.valid(widget) and not seen[widget.key] then
+        if Engine.valid(widget) and not seen[widget.key] and (not visibleOnly or Tree.visible(widget)) then
             seen[widget.key] = true
             local result = visit(widget)
             if result ~= nil then return result end

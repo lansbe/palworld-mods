@@ -29,6 +29,8 @@ function Extensions.install(package, settings, enabled)
         cleanup={}, toggles={}, timers={}, travel={}, services={}, loaded={}}
     local api = {controls=require('core.controls').call,remember=require('core.targets').remember,
         target=require('core.targets').get,traceback=debug.traceback, engine=Engine, game=Game, settings=item.settings, cache=Extensions.cache}
+    if package.translations then require('i18n.service').register(package.id,package.translations) end
+    function api.translate(key,arguments) return require('i18n.service').t(package.id,key,arguments) end
     function api.on_stop(fn) item.cleanup[#item.cleanup+1]=fn end
     function api.on_toggle(fn) item.toggles[#item.toggles+1]=fn end
     function api.on_travel(fn) item.travel[#item.travel+1]=fn end
@@ -105,7 +107,8 @@ function Extensions.list()
     local result = Engine.array()
     for _, entry in ipairs(Extensions.catalog) do
         local item = Extensions.active[entry.id]
-        result[#result+1]={id=entry.id, name=entry.name, installed=item~=nil, enabled=item and item.enabled or false}
+        result[#result+1]={id=entry.id, name=entry.translations and require('i18n.service').t(entry.id,'name') or entry.name,
+            installed=item~=nil, enabled=item and item.enabled or false}
     end
     return result
 end

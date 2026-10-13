@@ -9,6 +9,11 @@ end
 function Native.make(owner, kind)
     return Engine.construct(Engine.find('/Script/UMG.'..kind),owner.WidgetTree)
 end
+function Native.label(root,label)
+    Tree.walk(root,function(widget)
+        if widget.GetText and widget.SetText then widget:SetText(label) end
+    end,80)
+end
 function Native.sidebar(owner, template, label)
     local widget=Native.create(owner,template.class)
     local slot=template:GetParent():AddChildToVerticalBox(widget)
@@ -19,7 +24,7 @@ function Native.sidebar(owner, template, label)
     local caption=Tree.find(widget,'BP_PalTextBlock_Name') or Tree.find(widget,'Text_Main')
     assert(caption,'Native button label is unavailable'):SetText(label)
     local input=assert(Tree.find(widget,'WBP_PalInvisibleButton'),'Native button input is unavailable')
-    return widget,input
+    return widget,input,caption
 end
 function Native.row(owner, parent, label)
     local row=Native.create(owner,'WBP_OptionSettings_ListContent')

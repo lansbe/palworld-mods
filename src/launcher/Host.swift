@@ -32,21 +32,29 @@ final class Host {
         switch event["event"] as? String {
         case "ready":
             ready = true
+            runtime.call(["method": "language.configure", "language": L10n.mode]) { _ in }
             runtime.call(["method": "mods.catalog", "catalog": catalog.listing()]) { _ in }
             for id in catalog.installed() { install(id) { [weak self] in self?.feedback($0) } }
+        case "language_detected":
+            guard let language = event["language"] as? String else { return }
+            do { try L10n.detected(language) }
+            catch { runtime.note("Could not persist detected language") }
+        case "language_request":
+            guard let language = event["language"] as? String else { return }
+            command(["method": "language.set", "language": language]) { [weak self] in self?.feedback($0) }
         case "mod_request":
             guard let id = event["mod"] as? String else { return }
             command(["method": "mods." + ((event["operation"] as? String) ?? ""), "mod": id]) { [weak self] in self?.feedback($0) }
         case "mod_state", "settings":
             do { try catalog.record(event) }
-            catch { runtime.call(["method": "mods.feedback", "message": "Settings could not be saved."]) { _ in } }
+            catch { runtime.call(["method": "mods.feedback", "key": "error.save"]) { _ in } }
         default: break
         }
     }
 
     private func feedback(_ response: [String: Any]) {
         guard response["ok"] as? Bool != true else { return }
-        runtime.call(["method": "mods.feedback", "message": "The mod could not be changed. Check local diagnostics."]) { _ in }
+        runtime.call(["method": "mods.feedback", "key": "error.mod_change"]) { _ in }
         runtime.note("mod operation failed: \(response["result"] ?? "unknown error")")
     }
 
@@ -58,12 +66,20 @@ final class Host {
     private func command(_ request: [String: Any], reply: @escaping ([String: Any]) -> Void) {
         guard let method = request["method"] as? String else { reply(["ok": false, "result": "Missing method."]); return }
         if method == "host.status" { reply(["ok": true, "result": ["running": runtime.running, "ready": ready, "api": 1]]); return }
-        guard ready else { reply(["ok": false, "result": "Palworld is still starting."]); return }
+        guard ready else { reply(["ok": false, "result": L10n.text("error.starting")]); return }
+        if method == "language.set" {
+            do {
+                guard let language = request["language"] as? String else { throw HostError.message(L10n.text("error.language")) }
+                try L10n.setMode(language)
+                runtime.call(["method": "language.configure", "language": language], completion: reply)
+            } catch { reply(["ok": false, "result": L10n.text("error.save")]) }
+            return
+        }
         if method == "mods.install" {
             guard let id = request["mod"] as? String else { reply(["ok": false, "result": "Missing mod ID."]); return }
             install(id, reply: reply); return
         }
-        let allowed: Set<String> = ["ping", "game.state", "game.action", "game.look", "game.move", "game.stop",
+        let allowed: Set<String> = ["language.get", "ping", "game.state", "game.action", "game.look", "game.move", "game.stop",
             "game.observe", "game.inventory", "game.path", "game.aim", "ui.list", "ui.open", "ui.activate", "ui.set_text", "ui.scroll", "ui.back",
             "mods.list", "mods.enable", "mods.remove", "mods.configure", "mods.call", "diagnostics", "display.get", "display.fullscreen", "quit"]
         guard allowed.contains(method) else { reply(["ok": false, "result": "Unknown method."]); return }

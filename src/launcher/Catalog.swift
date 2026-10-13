@@ -21,18 +21,18 @@ final class Catalog {
                 let package = try JSONSerialization.jsonObject(with: bytes) as? [String: Any],
                 let id = package["id"] as? String, ["minimap", "autonomy"].contains(id),
                 package["api"] as? Int == 1, package["files"] is [String: String] else {
-                throw HostError.message("The bundled mod catalogue is invalid.")
+                throw HostError.message(L10n.text("error.catalog"))
             }
             let expected = try String(contentsOf: file.deletingPathExtension().appendingPathExtension("sha256"), encoding: .utf8)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             let digest = SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
-            guard digest == expected else { throw HostError.message("A bundled mod failed its integrity check.") }
+            guard digest == expected else { throw HostError.message(L10n.text("error.integrity")) }
             packages[id] = package
         }
     }
 
     func listing() -> [[String: Any]] {
-        ["minimap", "autonomy"].filter { packages[$0] != nil }.map { ["id": $0, "name": packages[$0]?["name"] ?? $0] }
+        ["minimap", "autonomy"].filter { packages[$0] != nil }.map { ["id": $0, "name": packages[$0]?["name"] ?? $0, "translations": packages[$0]?["translations"] ?? [:]] }
     }
 
     func installed() -> [String] {
@@ -40,7 +40,7 @@ final class Catalog {
     }
 
     func installRequest(_ id: String) throws -> [String: Any] {
-        guard let package = packages[id] else { throw HostError.message("Unknown mod.") }
+        guard let package = packages[id] else { throw HostError.message(L10n.text("error.unknown_mod")) }
         return ["method": "mods.install", "package": package,
             "settings": (state[id] as? [String: Any])?["settings"] ?? [:],
             "enabled": (state[id] as? [String: Any])?["enabled"] ?? true]

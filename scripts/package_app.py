@@ -9,11 +9,14 @@ import shutil
 import subprocess
 import tempfile
 from build import ROOT, build
+from localization import load_catalogues
 from distribution import APP_NAME, APP_FILENAME, BUNDLE_ID, VERSION, sign, signing_options
 
 
 def package_mod(folder, output):
     manifest = json.loads((folder / 'manifest.json').read_text())
+    if (folder / 'locales').is_dir():
+        manifest['translations'] = load_catalogues(folder)
     manifest['files'] = {
         '.'.join(path.relative_to(folder / 'src').with_suffix('').parts): path.read_text()
         for path in sorted((folder / 'src').rglob('*.lua'))
@@ -61,6 +64,7 @@ def assemble(app, assets, identity):
     shutil.copy2(ROOT / 'THIRD_PARTY_NOTICES.md', resources)
     shutil.copy2(ROOT / 'LICENSE', resources)
     shutil.copy2(assets / 'AppIcon.icns', resources)
+    shutil.copytree(ROOT / 'locales', resources / 'Locales')
     for name in ['palworld-mod-minimap', 'palworld-mod-autonomy']:
         package_mod(ROOT.parent / name, resources / 'Catalog')
     metadata = {'CFBundleIdentifier': BUNDLE_ID, 'CFBundleName': APP_NAME,

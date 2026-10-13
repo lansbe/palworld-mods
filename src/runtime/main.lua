@@ -3,11 +3,13 @@ local Menu = require('ui.menu')
 local Extensions = require('core.extensions')
 local Diagnostics = require('core.diagnostics')
 local Commands = require('core.commands')
+local I18n = require('i18n.service')
 local function emit(event) print('[PalModsIPC]'..Engine.json_encode(event)) end
 local function request(operation, id) emit({event='mod_request', operation=operation, mod=id}) end
 Menu.start({list=Extensions.list, active=function(id) return Extensions.active[id]~=nil end,
     install=function(id) request('install',id) end,
     remove=function(id) request('remove',id) end,
+    language=function(language) emit({event='language_request',language=language}) end,
     settings=function(instance,id) Menu.settings(instance, id, Extensions) end})
 function runtime_tick()
     for _, line in ipairs(Engine.messages()) do
@@ -16,11 +18,12 @@ function runtime_tick()
             local ok, result = xpcall(Commands.run,debug.traceback,request)
             if type(request)=='table' then
                 emit({id=request.id,ok=ok,result=result})
-                if ok and request.method:match('^mods%.') and request.method~='mods.call' then Menu.refresh() end
+                if ok and ((request.method:match('^mods%.') and request.method~='mods.call' and request.method~='mods.list') or request.method=='language.configure') then Menu.refresh() end
             end
         end
     end
     Diagnostics.guard('display',require('core.display').start)
+    Diagnostics.guard('language',I18n.tick)
     Diagnostics.guard('motion',require('core.motion').tick)
     Diagnostics.guard('registry',Registry.update)
     Diagnostics.guard('extensions',Extensions.tick)

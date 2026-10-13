@@ -12,10 +12,10 @@ enum Installation {
         NSApplication.shared.finishLaunching()
         NSApplication.shared.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "Install Palworld Mods"
-        alert.informativeText = "Drag Palworld Mods into Applications, then open it from there."
-        alert.addButton(withTitle: "Show Installer")
-        alert.addButton(withTitle: "Quit")
+        alert.messageText = L10n.text("launcher.install")
+        alert.informativeText = L10n.text("launcher.instruction")
+        alert.addButton(withTitle: L10n.text("launcher.show"))
+        alert.addButton(withTitle: L10n.text("common.quit"))
         if alert.runModal() == .alertFirstButtonReturn {
             NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
         }

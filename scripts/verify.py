@@ -40,3 +40,5 @@ for name in sorted(set(files) - {''}):
 if problems:
     raise SystemExit('\n'.join(problems))
 print(f'PASS: source boundaries, privacy patterns, file sizes and syntax ({len(set(files)) - 1} files)')
+
+subprocess.run(['python3', str(ROOT / 'scripts/check_localization.py')], check=True)

@@ -28,7 +28,7 @@ struct Paths {
                 return app.appendingPathComponent("Contents/MacOS/Palworld")
             }
         }
-        throw HostError.message("Install Palworld from the Mac App Store first.")
+        throw HostError.message(L10n.text("launcher.missing_game"))
     }
 }
 
@@ -38,8 +38,8 @@ enum HostError: Error, LocalizedError {
 }
 
 func jsonData(_ value: Any) throws -> Data {
-    guard JSONSerialization.isValidJSONObject(value) else { throw HostError.message("Invalid JSON message.") }
+    guard JSONSerialization.isValidJSONObject(value) else { throw HostError.message(L10n.text("error.json")) }
     let data = try JSONSerialization.data(withJSONObject: value, options: [.sortedKeys])
-    guard data.count <= 1_048_576 else { throw HostError.message("Message exceeds the size limit.") }
+    guard data.count <= 1_048_576 else { throw HostError.message(L10n.text("error.size")) }
     return data
 }

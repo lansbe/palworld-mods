@@ -25,10 +25,17 @@ function Commands.run(request)
     if method=='ui.activate' then return Control.activate(request.element) end
     if method=='ui.set_text' then return Control.set_text(request.element, request.text) end
     if method=='mods.list' then return Extensions.list() end
-    if method=='mods.feedback' then require('ui.menu').feedback(request.message);return true end
+    if method=='language.get' then return require('i18n.service').state() end
+    if method=='language.configure' then return require('i18n.service').configure(request.language) end
+    if method=='mods.feedback' then
+        require('ui.menu').feedback(request.key and require('i18n.service').core(request.key) or request.message);return true
+    end
     if method=='mods.catalog' then
         assert(type(request.catalog)=='table' and #request.catalog<=32, 'Invalid catalogue')
         Extensions.catalog=request.catalog
+        for _,entry in ipairs(request.catalog) do
+            if entry.translations then require('i18n.service').register(entry.id,entry.translations) end
+        end
         return true
     end
     if method=='mods.install' then
@@ -39,7 +46,15 @@ function Commands.run(request)
     if method=='mods.enable' then return Extensions.enable(request.mod,request.enabled) end
     if method=='mods.remove' then return Extensions.remove(request.mod) end
     if method=='mods.configure' then return Extensions.configure(request.mod, request.settings) end
-    if method=='mods.call' then return Extensions.call(request.mod, request.operation, request.arguments) end
+    if method=='mods.call' then
+        local result=Extensions.call(request.mod,request.operation,request.arguments)
+        if request.operation=='settings' then
+            local fields=Engine.array()
+            for i,field in ipairs(result) do fields[i]=require('i18n.service').field(request.mod,field) end
+            return fields
+        end
+        return result
+    end
     if method=='diagnostics' then return {errors=Diagnostics.errors, timings=Diagnostics.samples} end
     if method=='quit' then assert(Game.state().phase=='title','Return to the title screen before quitting');require('core.motion').stop(); Extensions.shutdown(); Engine.quit(); return true end
     error('Unknown command: '..method)
