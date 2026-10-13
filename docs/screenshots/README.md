@@ -1,9 +1,10 @@
 # Screenshot notes
 
 These are real, unretouched captures from the Mac App Store edition of Palworld,
-using Palworld Mods 0.4.2, Minimap 0.2.1 and Autonomy 0.2.1 on game build 102999.
+using Palworld Mods, Minimap 0.2.1 and Autonomy 0.2.1 on game build 102999.
+The native menu capture uses Mods 0.4.4; the gameplay capture uses Mods 0.4.2.
 The game and mod interface were temporarily set to English for documentation.
-The capture session took place on October 13, 2026, in a local test world.
+The captures were taken on October 13, 2026, at the title screen and in a local test world.
 
 Images show the native Mods settings, Minimap during gameplay, or the relevant
 mod settings. Autonomy was stopped throughout the session. A screenshot shows

@@ -8,7 +8,7 @@ Install one app, then manage your mods inside the game's own settings.
 
 ![The native settings screen with Mods, Manage mods, Updates, Language, Minimap and Autonomy](docs/screenshots/mods-menu.jpg)
 
-*Options → Mods, inside the game. No separate management window.*
+*Options → Mods, with native tabs across the top. No separate management window.*
 
 ## Before you start
 
@@ -52,12 +52,12 @@ security is not part of installation.
 
 | I want to… | Open Options → Mods, then… |
 | --- | --- |
-| Change the map | Select **Minimap** for shape, camera follow, range, transparency and icons. |
-| Hide a mod temporarily | Select the mod and turn **Enabled** off. |
-| Install or remove a bundled mod | Open **Manage mods** and select the mod. A gray entry is not installed. |
+| Change the map | Select the **Minimap** tab for shape, camera follow, range, transparency and icons. |
+| Hide a mod temporarily | Select the mod's tab and turn **Enabled** off. |
+| Install or remove a bundled mod | Open the **Manage mods** tab and select the mod. A gray tab also installs the missing mod when selected. |
 | Try automatic capture/gathering | Install **Autonomy** and read its [first-session guide](https://github.com/lansbe/palworld-mod-autonomy#try-it-in-a-test-world). |
-| Change the language | Select **Language**. Automatic follows the game; a manual choice is remembered. |
-| Check or install an app update | Open **Updates**. Automatic updates are on by default and can be turned off. |
+| Change the language | Open **Manage mods → Language**. Automatic follows the game; a manual choice is remembered. |
+| Check or install an app update | Select the **Updates** tab. Automatic updates are on by default and can be turned off. |
 
 Installing, removing, enabling and configuring bundled mods applies without
 restarting the game. App/runtime updates take effect after a normal game exit;

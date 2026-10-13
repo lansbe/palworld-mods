@@ -1,5 +1,6 @@
 local Native=require('ui.native')
 local Settings=require('ui.settings')
+local Tabs=require('ui.tabs')
 local Tree=require('ui.tree')
 local Registry=require('core.registry')
 local I18n=require('i18n.service')
@@ -14,13 +15,11 @@ end
 local function close(instance,nativeSwitch,discard)
     if not instance.panel then return end
     if not discard then Settings.poll(instance,true) end
+    Tabs.close(instance,nativeSwitch)
     if Engine.valid(instance.panel) then instance.panel:RemoveFromParent() end
     local owner=instance.owner
-    local tab=Engine.valid(owner) and owner.WBP_OptionSettings_Tab
     for _,entry in ipairs(instance.hidden) do
-        if Engine.valid(entry.widget) and (not nativeSwitch or not Engine.valid(tab) or entry.widget.key~=tab.key) then
-            entry.widget:SetVisibility(entry.visibility)
-        end
+        if Engine.valid(entry.widget) then entry.widget:SetVisibility(entry.visibility) end
     end
     if Engine.valid(owner) and owner:IsActivated() then
         owner.DefaultActionBinding=owner:RegisterActionBinding(owner.DefaultActionName,false,0,
@@ -30,7 +29,7 @@ local function close(instance,nativeSwitch,discard)
     instance.panel,instance.list,instance.page,instance.modId=nil,nil,nil,nil
     instance.controls,instance.callbacks,instance.hidden={},{},{}
 end
-local function begin(instance,page,title)
+local function begin(instance,page,modId)
     close(instance,false,true)
     local owner=instance.owner
     owner.CanvasPanel_Settings:SetVisibility(0)
@@ -40,35 +39,38 @@ local function begin(instance,page,title)
     instance.panel,instance.list,instance.page=panel,list,page
     instance.controls,instance.callbacks={},{ }
     hide(instance,owner.WBP_PalCommonScrollList)
-    hide(instance,owner.WBP_OptionSettings_Tab)
     hide(instance,owner.WBP_PalKeyGuideIcon_Default)
     hide(instance,owner.BP_PalTextBlock_Default)
     owner:UnregisterActionBinding(owner.DefaultActionBinding)
     owner['Set Tab Action'](owner,false)
-    Native.heading(owner,list,title)
+    local entries={{id='catalog',label=I18n.core('menu.manage')}}
+    for _,mod in ipairs(Menu.model.list() or {}) do
+        entries[#entries+1]={id=mod.id,label=mod.name,muted=not mod.installed}
+    end
+    entries[#entries+1]={id='updates',label=I18n.core('updates.title')}
+    Tabs.create(instance,entries,modId or page,function(id)
+        if id=='catalog' or id=='updates' then render(instance,id)
+        elseif Menu.model.active(id) then Menu.model.settings(instance,id)
+        else Menu.model.install(id) end
+    end)
 end
 local function action(instance,label,callback,muted,verb)
     return Native.action(instance.owner,instance.list,label,callback,instance.callbacks,muted,verb)
 end
 render=function(instance,page)
-    begin(instance,page or 'mods',I18n.core(page=='updates' and 'updates.title' or page=='catalog' and 'menu.manage' or 'menu.mods'))
+    page=page=='updates' and 'updates' or 'catalog'
+    begin(instance,page)
     if page=='updates' then
-        require('ui.updates').render(instance,action,function() render(instance) end)
+        require('ui.updates').render(instance,action)
         return
     end
-    if page=='catalog' then action(instance,I18n.core('common.back'),function() render(instance) end)
-    else
-        action(instance,I18n.core('menu.manage'),function() render(instance,'catalog') end)
-        action(instance,I18n.core('updates.title'),function() render(instance,'updates') end)
-        local ids,labels=I18n.choices()
-        Settings.field(instance,{key='language',label=I18n.core('language.title'),options=ids,optionLabels=labels},I18n.mode,Menu.model.language)
-    end
+    local ids,labels=I18n.choices()
+    Settings.field(instance,{key='language',label=I18n.core('language.title'),options=ids,optionLabels=labels},I18n.mode,Menu.model.language)
     for _,mod in ipairs(Menu.model.list() or {}) do
         action(instance,mod.name,function()
             if not mod.installed then Menu.model.install(mod.id)
-            elseif page=='catalog' then Menu.model.remove(mod.id)
-            else Menu.model.settings(instance,mod.id) end
-        end,not mod.installed,page=='catalog' and I18n.core(mod.installed and 'common.uninstall' or 'common.install') or nil)
+            else Menu.model.remove(mod.id) end
+        end,not mod.installed,I18n.core(mod.installed and 'common.uninstall' or 'common.install'))
     end
 end
 local function attach(owner)
@@ -124,9 +126,8 @@ function Menu.stop()
 end
 function Menu.settings(instance,id,extensions)
     local item=assert(extensions.active[id],'Mod is no longer installed')
-    begin(instance,'settings',I18n.t(id,'name'))
+    begin(instance,'settings',id)
     instance.modId=id
-    action(instance,I18n.core('common.back'),function() render(instance) end)
     Settings.field(instance,{key='enabled',label=I18n.core('common.enabled'),type='boolean'},item.enabled,function(value)
         extensions.enable(id,value)
     end)
@@ -179,7 +180,7 @@ function Menu.click(button)
     for _,instance in pairs(Menu.instances) do
         if Engine.valid(instance.owner) then
             if instance.nativeButtons[button.key] then close(instance,true);return end
-            if instance.button.key==button.key then instance.open();return end
+            if instance.button.key==button.key then Settings.poll(instance,true);instance.open();return end
             local callback=instance.callbacks[button.key]
             if callback then Settings.poll(instance,true);callback();return end
         end

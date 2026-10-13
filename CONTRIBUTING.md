@@ -27,6 +27,7 @@ python3 scripts/verify.py
 python3 -m unittest discover -s tests -p 'test_*.py'
 lua tests/extensions.lua
 lua tests/settings.lua
+lua tests/text_field.lua
 lua tests/localization.lua
 lua tests/tree.lua
 lua tests/updates.lua
@@ -66,6 +67,9 @@ For Autonomy, open Options > Mods > Autonomy with Running off, then run
 `tests/native_autonomy_settings.lua`. It checks the rendered controls and restores
 the saved configuration even when an assertion fails. Use a temporary world;
 never enable arbitrary evaluation in a distributed launcher.
+Run `tests/native_mod_navigation.lua` from the Autonomy tab to check page changes,
+pending text commits and panel cleanup. Also inspect selection and the blinking
+caret in the actual game; style assertions do not replace a visual check.
 
 Bug reports should include the app/mod version, macOS version, game build, minimal
 steps and expected/actual behavior. Review diagnostic excerpts and screenshots for

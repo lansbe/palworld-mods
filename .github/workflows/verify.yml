@@ -27,6 +27,7 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_*.py'
           lua tests/extensions.lua
           lua tests/settings.lua
+          lua tests/text_field.lua
           lua tests/localization.lua
           lua tests/tree.lua
           lua tests/updates.lua

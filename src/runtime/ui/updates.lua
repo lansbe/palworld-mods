@@ -19,9 +19,8 @@ function Updates.set(state)
     end
     return true
 end
-function Updates.render(instance,action,back)
+function Updates.render(instance,action)
     local state=Updates.state
-    action(instance,I18n.core('common.back'),back)
     Settings.field(instance,{key='automatic',type='boolean',label=I18n.core('updates.automatic')},state.automatic,function(value)
         request('configure',{automatic=value})
     end)

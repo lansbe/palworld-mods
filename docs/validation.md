@@ -3,6 +3,29 @@
 Verified locally on Apple silicon with the supported App Store executable.
 This record describes observed results, not guarantees for every game session.
 
+## Native tabs and input contrast (0.4.4)
+
+- Reproduced inherited foreground colors in the editable text style. Text, focused
+  text and selection now use explicit contrasting colors; solid background brushes
+  avoid references to editor-only Slate image files. Inspected the caret and selected
+  text in the game, and replaced a selected capture goal through macOS keyboard input.
+- Four native tabs replace the in-list navigation: Manage mods, Minimap, Autonomy
+  and Updates. Pending text survives tab changes. Native Graphics, Controls and
+  Sounds pages recover their original tab visibility after leaving Mods.
+- Native integration checks cover all 18 Autonomy controls, validation failures,
+  tab selection, detached old panels and settings restoration. Contrast regression
+  checks require at least 4.5:1 for entered text against each input background.
+- Inspected French, English, German, Russian and Japanese layouts. All 17 locale
+  catalogues pass validation. The production app passed gray-tab installation,
+  removal, text persistence, a local-world menu visit and normal return to title
+  and exit, with no runtime diagnostic errors. The production probe stays disabled.
+- The disk image, signed update and disposable app replacement passed verification.
+
+The keyboard test above succeeded after raising the game window. This does not
+establish reliable remote mouse routing or gamepad text entry. Q/E remains reserved
+for the game's own settings tabs; Mods tabs use their native buttons. No multiplayer
+or autonomous capture/gathering behavior changed or was validated in this UI fix.
+
 ## Native Autonomy settings (0.4.3)
 
 - A cold Options session reproduced the missing world-settings text template in

@@ -8,10 +8,11 @@ local Updates=require('ui.updates')
 local function render(state)
     actions,fields,headings={},{},{}
     Updates.set(state)
-    Updates.render({},function(_,label,callback)actions[label]=callback end,function()end)
+    Updates.render({},function(_,label,callback)actions[label]=callback end)
 end
 render({automatic=true,status='idle',connected=false})
 assert(fields.automatic.value==true and actions['updates.check'] and not actions['updates.connect'])
+assert(not actions['common.back'],'Page navigation belongs in the top tabs')
 assert(not actions['updates.install'])
 render({automatic=false,status='available',connected=false,available=true})
 assert(actions['updates.check'] and actions['updates.install'],'Public updates must not require sign-in')
