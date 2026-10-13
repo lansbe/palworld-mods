@@ -152,3 +152,16 @@ ad hoc code signing plus a separate pinned Ed25519 release signature.
 - Behavior tests also preserve existing opt-out files during provider migration and
   remember the selected provider across launches. The final disk image, signatures
   and signed disposable installation passed again with the macOS 14 target.
+- CI passed for release commit `e0c78078f88b51555ca89d34cb6e407b16f384c2`
+  (run `38339320915`); all six uploaded assets matched local SHA-256 digests.
+- After relaunch, the chosen GitHub provider and opt-out persisted. Native manual
+  check/install downloaded the published signed 0.4.1 update. Disabling cancelled
+  the queued installation; re-enabling downloaded it automatically.
+- Normal game shutdown launched the real helper, which upgraded the disposable
+  app to 0.4.1 without intervention and retained its previous bundle. Signatures
+  remained valid and saved mod settings were byte-for-byte unchanged.
+- The Applications install exactly matched the released app. It started with
+  automatic updates enabled and the GitHub connection remembered. Its native
+  Updates page and private-release check worked in a loaded local world.
+- The final app returned from that world to the title screen and quit normally,
+  with empty runtime error diagnostics. Language remained Automatic.
