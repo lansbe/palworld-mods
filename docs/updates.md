@@ -12,6 +12,10 @@ Status changes alone refresh the Updates page. Other game pages are unchanged.
 The source is the private `lansbe/palworld-mods` GitHub repository. Authentication
 requires Contents read permission. Connect GitHub reuses a local GitHub CLI login
 when available; otherwise a native secure-field dialog accepts a repository token.
+A selected CLI provider is remembered without copying its token. Its credential
+lookup has a three-second limit. Keychain access runs on a separate utility queue;
+legacy ACL prompts are disabled outside an explicit Connect action. Credential
+loading never delays game startup or blocks the control socket.
 The shipped app has no CLI dependency. Disconnect removes its Keychain entry and
 cancels pending work. Ad hoc builds may require reconnection after code-signature
 changes; Developer ID releases preserve their stable signing identity.

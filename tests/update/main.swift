@@ -48,6 +48,14 @@ assert(optedOut.preferences.automatic == false, "Opt-out must survive relaunch")
 preference.automatic = true; try store.save(preference)
 let optedIn = try UpdateStore(root: root)
 assert(optedIn.preferences.automatic, "Re-enabling must survive relaunch")
+preference.credentialSource = "github-cli"; try store.save(preference)
+let connected = try UpdateStore(root: root)
+assert(connected.preferences.credentialSource == "github-cli", "Provider selection must survive relaunch")
+try Data(#"{"automatic":false}"#.utf8).write(to: store.preferencesURL)
+let migrated = try UpdateStore(root: root)
+assert(!migrated.preferences.automatic && migrated.preferences.credentialSource == nil,
+       "Existing opt-out must survive the credential-provider migration")
+try store.save(preference)
 let mode = try FileManager.default.attributesOfItem(atPath: store.preferencesURL.path)[.posixPermissions] as? Int
 assert(mode == 0o600)
 let fixture = #"[{"tag_name":"v0.9.0","draft":false,"prerelease":false,"assets":[]},{"tag_name":"v0.10.0","draft":false,"prerelease":false,"assets":[]},{"tag_name":"v9.0.0","draft":true,"prerelease":false,"assets":[]},{"tag_name":"v8.0.0","draft":false,"prerelease":true,"assets":[]}]"#

@@ -55,9 +55,14 @@ def assemble(app, assets, identity):
     resources = contents / 'Resources'
     for folder in [executable, contents / 'Helpers', resources / 'Catalog']:
         folder.mkdir(parents=True, exist_ok=True)
+    keychain = ROOT / 'build/update-keychain.o'
+    subprocess.run(['xcrun', 'clang', '-target', 'arm64-apple-macos14.0', '-O2', '-Wall', '-Wextra', '-Werror',
+                    f'-ffile-prefix-map={ROOT}=.', '-c', str(ROOT / 'src/launcher/UpdateKeychain.c'),
+                    '-o', str(keychain)], check=True)
     subprocess.run(['xcrun', 'swiftc', '-swift-version', '5', '-O', '-warnings-as-errors',
                     '-file-prefix-map', f'{ROOT}=.', '-debug-prefix-map', f'{ROOT}=.',
-                    '-target', 'arm64-apple-macos14.0', '-framework', 'AppKit', '-framework', 'CryptoKit', '-framework', 'Security',
+                    '-target', 'arm64-apple-macos14.0', '-import-objc-header', str(ROOT / 'src/launcher/UpdateKeychain.h'),
+                    str(keychain), '-framework', 'AppKit', '-framework', 'CryptoKit', '-framework', 'Security',
                     *map(str, sorted((ROOT / 'src/update').glob('*.swift'))),
                     *map(str, sorted((ROOT / 'src/launcher').glob('*.swift'))),
                     '-o', str(executable / 'PalworldMods')], check=True)

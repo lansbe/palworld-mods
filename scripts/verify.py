@@ -7,7 +7,7 @@ import subprocess
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 files = subprocess.check_output(['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'], cwd=ROOT).decode().split('\0')
-source_types = {'.cpp', '.hpp', '.mm', '.swift', '.lua', '.py', '.sh', '.command'}
+source_types = {'.c', '.h', '.cpp', '.hpp', '.mm', '.swift', '.lua', '.py', '.sh', '.command'}
 forbidden = [re.compile('/' + r'Users/[^\s]+'), re.compile(r'-----BEGIN ' + r'(?:RSA |OPENSSH |EC )?PRIVATE KEY-----'),
              re.compile(r'(?:gh[pousr]_' + r'[A-Za-z0-9]{30,}|github_pat_' + r'[A-Za-z0-9_]{40,})')]
 problems = []

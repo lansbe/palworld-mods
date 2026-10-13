@@ -100,7 +100,7 @@ python3 scripts/test_updates.py
 python3 -m venv .venv
 .venv/bin/python -m pip install --require-hashes -r scripts/requirements-packaging.txt
 .venv/bin/python scripts/package_dmg.py
-.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.4.0-macos-arm64.dmg
+.venv/bin/python scripts/verify_package.py dist/palworld-mods-0.4.1-macos-arm64.dmg
 ```
 
 The build downloads checksum-pinned Lua sources. `dist/Palworld Mods.app` contains

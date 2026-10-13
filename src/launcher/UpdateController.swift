@@ -13,7 +13,9 @@ final class UpdateController: @unchecked Sendable {
     private var staged: URL?
     private var connecting = false
     private var lastPayload: Data?
-    private var connected = UpdateCredentials.read() != nil
+    private var connected = false
+    private var credential: String?
+    private var credentialGeneration = 0
     var onChange: (([String: Any]) -> Void)?
     var note: ((String) -> Void)?
 
@@ -38,6 +40,13 @@ final class UpdateController: @unchecked Sendable {
         onChange?(snapshot)
     }
     func start() {
+        let credentialVersion = credentialGeneration
+        UpdateCredentials.load(provider: store.preferences.credentialSource) { [weak self] token in
+            self?.queue.async {
+                guard let self = self, self.credentialGeneration == credentialVersion else { return }
+                self.credential = token; self.connected = token != nil; self.changed()
+            }
+        }
         let timer = DispatchSource.makeTimerSource(queue: queue)
         timer.schedule(deadline: .now() + 10, repeating: 3600)
         timer.setEventHandler { [weak self] in
@@ -62,17 +71,25 @@ final class UpdateController: @unchecked Sendable {
         case "updates.connect":
             guard task == nil, !connecting else { throw UpdateFailure.busy }
             connecting = true
-            UpdateCredentials.connect { [weak self] success in
+            credentialGeneration += 1; let credentialVersion = credentialGeneration
+            UpdateCredentials.connect { [weak self] token, provider in
                 self?.queue.async {
-                    guard let self = self else { return }
+                    guard let self = self, self.credentialGeneration == credentialVersion else { return }
                     self.connecting = false
-                    self.connected = UpdateCredentials.read() != nil
-                    self.changed(success ? "idle" : "authentication")
-                    if success { self.check(automatic: self.store.preferences.automatic) }
+                    guard let token = token, let provider = provider else { self.changed("authentication"); return }
+                    do {
+                        var preference = self.store.preferences; preference.credentialSource = provider
+                        try self.store.save(preference)
+                        self.credential = token; self.connected = true; self.changed("idle")
+                        self.check(automatic: self.store.preferences.automatic)
+                    } catch { self.failed(error) }
                 }
             }
         case "updates.disconnect":
-            try UpdateCredentials.remove(); connected = false; cancel(); changed("authentication")
+            var preference = store.preferences; preference.credentialSource = nil
+            try store.save(preference)
+            credentialGeneration += 1; credential = nil; connecting = false
+            UpdateCredentials.remove(); connected = false; cancel(); changed("authentication")
         default: throw UpdateFailure.invalidPackage
         }
         changed(); return snapshot
@@ -83,7 +100,7 @@ final class UpdateController: @unchecked Sendable {
         staged = nil; changed("idle")
     }
     private func source() -> GitHubUpdateSource? {
-        guard let token = UpdateCredentials.read() else { connected = false; changed("authentication"); return nil }
+        guard let token = credential else { connected = false; changed("authentication"); return nil }
         connected = true; return GitHubUpdateSource(token: token)
     }
     private func failed(_ error: Error) {

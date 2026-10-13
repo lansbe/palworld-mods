@@ -138,3 +138,17 @@ crash reports are retained locally to support a future diagnosis.
 These checks do not establish notarization, first-download behavior on another
 Mac, or performance across a full multiplayer session. Current local builds use
 ad hoc code signing plus a separate pinned Ed25519 release signature.
+
+## Update startup reliability (0.4.1)
+
+- The first release candidate exposed a legacy Keychain ACL prompt after its ad hoc
+  signature changed. The 0.4.0 release was withdrawn to prerelease status. Credential
+  lookup now runs asynchronously; legacy prompts are disabled outside Connect.
+- A credential created by a separate process reproduced the ACL boundary. Reading
+  it returned without UI instead of blocking startup. No real credential was exposed.
+- A freshly signed disposable launcher reached the real title screen with its
+  persisted opt-out intact. The native Connect GitHub action selected the CLI
+  provider without storing a second token.
+- Behavior tests also preserve existing opt-out files during provider migration and
+  remember the selected provider across launches. The final disk image, signatures
+  and signed disposable installation passed again with the macOS 14 target.

@@ -3,6 +3,7 @@ import Foundation
 struct UpdatePreferences: Codable {
     var automatic = true
     var lastCheck: Date?
+    var credentialSource: String?
 }
 
 final class UpdateStore {
