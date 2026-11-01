@@ -8,6 +8,7 @@ import subprocess
 import tarfile
 import urllib.request
 from localization import embedded_module
+from generated_source import cpp_module
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LUA_VERSION = "5.4.8"
@@ -57,16 +58,14 @@ def build(development=False):
     files = sorted(p for p in source.glob("*.c") if p.name not in {"lua.c", "luac.c"})
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
         compiled = list(pool.map(compile_one, files))
-    chunks = ['{"i18n.catalog", R"PAL_LUA(' + embedded_module() + ')PAL_LUA"}']
+    chunks = [cpp_module('i18n.catalog', embedded_module())]
     for path in sorted((ROOT / "src/runtime").rglob("*.lua")):
         name = path.relative_to(ROOT / "src/runtime").with_suffix("").as_posix().replace("/", ".")
         content = path.read_text()
-        if ')PAL_LUA"' in content:
-            raise RuntimeError("Embedded source delimiter conflict")
-        chunks.append('{"' + name + '", R"PAL_LUA(' + content + ')PAL_LUA"}')
+        chunks.append(cpp_module(name, content))
     if development:
         source_text = (ROOT / 'scripts/development.lua').read_text()
-        chunks.append('{"development", R"PAL_LUA(' + source_text + ')PAL_LUA"}')
+        chunks.append(cpp_module('development', source_text))
     (build_dir / "embedded.hpp").write_text(
         '#pragma once\nstruct EmbeddedModule { const char* name; const char* source; };\n'
         'inline const EmbeddedModule embeddedModules[] = {\n' + ',\n'.join(chunks) + '\n};\n')

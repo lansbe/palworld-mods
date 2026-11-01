@@ -40,7 +40,7 @@ class PackagingTests(unittest.TestCase):
             license_text = 'MIT License\n\nCopyright (c) Example contributors\n'
             (folder / 'LICENSE').write_text(license_text)
             (folder / 'src/nested/module.lua').write_text('return {name = "example"}\n')
-            package_mod(folder, root)
+            package_mod(folder, root, 'minimap')
             content = (root / 'minimap.json').read_bytes()
             self.assertEqual(json.loads(content)['files'], {'nested.module': 'return {name = "example"}\n'})
             self.assertEqual(json.loads(content)['licenseText'], license_text)

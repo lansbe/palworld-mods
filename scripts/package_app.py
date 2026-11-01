@@ -8,24 +8,32 @@ import plistlib
 import shutil
 import subprocess
 import tempfile
+import re
 from build import ROOT, build
-from localization import load_catalogues
+from localization import load_catalogues, copy_catalogues
+from package_io import SourceTree, MAX_BYTES, write_catalogue
 from distribution import APP_NAME, APP_FILENAME, BUNDLE_ID, VERSION, sign, signing_options
 
 
-def package_mod(folder, output):
-    manifest = json.loads((folder / 'manifest.json').read_text())
-    manifest['licenseText'] = (folder / 'LICENSE').read_text()
-    if (folder / 'locales').is_dir():
-        manifest['translations'] = load_catalogues(folder)
-    manifest['files'] = {
-        '.'.join(path.relative_to(folder / 'src').with_suffix('').parts): path.read_text()
-        for path in sorted((folder / 'src').rglob('*.lua'))
-    }
+def package_mod(folder, output, expected_id):
+    if not isinstance(expected_id, str) or not re.fullmatch(r'[a-z][a-z0-9-]{0,63}', expected_id):
+        raise ValueError('Invalid expected package identifier')
+    with SourceTree(folder) as source:
+        manifest = json.loads(source.read_text('manifest.json'))
+        if not isinstance(manifest, dict) or manifest.get('id') != expected_id:
+            raise ValueError('Unexpected package identifier')
+        manifest['licenseText'] = source.read_text('LICENSE')
+        if source.has_directory('locales'):
+            manifest['translations'] = load_catalogues(read_text=source.read_text)
+        manifest['files'] = {}
+        for name, content in source.lua_files():
+            if name in manifest['files']:
+                raise ValueError('Ambiguous package module name')
+            manifest['files'][name] = content
     data = json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()
-    destination = output / (manifest['id'] + '.json')
-    destination.write_bytes(data)
-    destination.with_suffix('.sha256').write_text(hashlib.sha256(data).hexdigest() + '\n')
+    if len(data) > MAX_BYTES:
+        raise ValueError('Package catalogue exceeds the size limit')
+    write_catalogue(output, expected_id, data, (hashlib.sha256(data).hexdigest() + '\n').encode())
 
 
 def package_app(identity='-'):
@@ -77,9 +85,9 @@ def assemble(app, assets, identity):
     shutil.copy2(ROOT / 'THIRD_PARTY_NOTICES.md', resources)
     shutil.copy2(ROOT / 'LICENSE', resources)
     shutil.copy2(assets / 'AppIcon.icns', resources)
-    shutil.copytree(ROOT / 'locales', resources / 'Locales')
+    copy_catalogues(resources / 'Locales')
     for name in ['palworld-mod-minimap', 'palworld-mod-autonomy']:
-        package_mod(ROOT.parent / name, resources / 'Catalog')
+        package_mod(ROOT.parent / name, resources / 'Catalog', name.removeprefix('palworld-mod-'))
     metadata = {'CFBundleIdentifier': BUNDLE_ID, 'CFBundleName': APP_NAME,
                 'CFBundleDisplayName': APP_NAME, 'CFBundleExecutable': 'PalworldMods',
                 'CFBundlePackageType': 'APPL', 'CFBundleShortVersionString': VERSION,

@@ -2,6 +2,8 @@
 import json
 import pathlib
 import re
+from generated_source import lua_string
+from package_io import SourceTree
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LANGUAGES = ['en', 'fr', 'de', 'es', 'es-419', 'it', 'pt-BR', 'pl', 'ru',
@@ -17,9 +19,12 @@ def unique_object(pairs):
     return result
 
 
-def load_catalogues(root=ROOT):
-    folder = root / 'locales'
-    catalogues = {language: json.loads((folder / f'{language}.json').read_text(), object_pairs_hook=unique_object)
+def load_catalogues(root=ROOT, *, read_text=None):
+    if read_text is None:
+        with SourceTree(root) as source:
+            return load_catalogues(read_text=source.read_text)
+    reader = read_text
+    catalogues = {language: json.loads(reader(f'locales/{language}.json'), object_pairs_hook=unique_object)
                   for language in LANGUAGES}
     reference = catalogues['en']
     for language, messages in catalogues.items():
@@ -34,9 +39,20 @@ def load_catalogues(root=ROOT):
 
 
 def embedded_module():
-    payload = {'languages': json.loads((ROOT / 'locales/languages.json').read_text()), 'messages': load_catalogues()}
+    with SourceTree(ROOT) as source:
+        payload = {'languages': json.loads(source.read_text('locales/languages.json')),
+                   'messages': load_catalogues(read_text=source.read_text)}
     encoded = json.dumps(payload, ensure_ascii=False, separators=(',', ':'))
-    return 'return Engine.json_decode([==[' + encoded + ']==])'
+    return 'return Engine.json_decode(' + lua_string(encoded) + ')'
+
+
+def copy_catalogues(destination):
+    with SourceTree(ROOT) as source:
+        catalogues = load_catalogues(read_text=source.read_text)
+        languages = json.loads(source.read_text('locales/languages.json'))
+    destination.mkdir()
+    for name, value in [('languages', languages), *catalogues.items()]:
+        (destination / (name + '.json')).write_text(json.dumps(value, ensure_ascii=False), encoding='utf-8')
 
 
 if __name__ == '__main__':
